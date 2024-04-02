@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DSD-Capstone")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+97b4d61359efc85e547612c8fdf5fc4774230e58")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd469f517afac965ca70629ca69ab185ae5d8788")]
 [assembly: System.Reflection.AssemblyProductAttribute("DSD-Capstone")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DSD-Capstone")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
