@@ -30,18 +30,18 @@ jobs:
       run: dotnet restore
 
     - name: Install Playwright Browsers
-      run: npx playwright install
+      run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
     
     # Building to catch any build errors before running
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build
 
     - name: Run Application
-      run: dotnet run --no-build --configuration Release &
+      run: dotnet run --no-build &
 
     # Waiting a few seconds to ensure app is running
     - name: Wait for application to start
-      run: sleep 5
+      run: sleep 10
     
     - name: Run Tests
       run: dotnet test --no-build --verbosity normal
