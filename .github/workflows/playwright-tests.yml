@@ -29,12 +29,12 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
 
-    - name: Install Playwright Browsers
-      run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
-    
     # Building to catch any build errors before running
     - name: Build
       run: dotnet build
+
+    - name: Install Playwright Browsers
+      run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
 
     - name: Run Application
       run: dotnet run --no-build &
