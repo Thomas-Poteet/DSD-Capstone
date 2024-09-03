@@ -1,4 +1,10 @@
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // For Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -32,12 +38,60 @@ if (!app.Environment.IsDevelopment())
         config.DocExpansion = "list";
     });
 }
+app.UseHttpsRedirection();
+//string connectionString = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!;
+
 
 // Just to see how Swagger works
 app.MapGet("/hello", () => "Hello World!");
 app.MapGet("/helloyou", (string strName) => "Hello " + strName + "!");
 
-app.UseHttpsRedirection();
+app.MapGet("/Employees", async (MyDbContext dbContext) => {
+    var employees = await dbContext.Employees.ToListAsync();
+    return Results.Ok(employees);
+
+    /*using var conn = new SqlConnection(connectionString);
+    conn.Open();
+
+    var command = new SqlCommand("SELECT * FROM Employees", conn);
+    using SqlDataReader reader = command.ExecuteReader();
+
+    if (reader.HasRows)
+    {
+        while (reader.Read())
+        {
+            rows.Add($"{reader.GetInt32(0)}, {reader.GetString(1)}, {reader.GetString(2)}");
+        }
+    }
+
+    return rows;
+    */
+})
+.WithName("GetEmployee");
+//.WithOpenApi();
+
+app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
+    dbContext.Employees.Add(employee);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{employee.emp_no}", employee);
+    /*using var conn = new SqlConnection(connectionString);
+    conn.Open();
+
+    var command = new SqlCommand(
+        "INSERT INTO Persons (firstName, lastName) VALUES (@firstName, @lastName)",
+        conn);
+
+    command.Parameters.Clear();
+    command.Parameters.AddWithValue("@emp_no", employee.emp_no);
+    command.Parameters.AddWithValue("@firstName", employee.FirstName);
+    command.Parameters.AddWithValue("@lastName", employee.LastName);
+
+    using SqlDataReader reader = command.ExecuteReader();
+    */
+})
+.WithName("CreateEmployee");
+//.WithOpenApi();
+
 app.UseStaticFiles();
 
 app.UseRouting();
