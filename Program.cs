@@ -37,6 +37,7 @@ if (!app.Environment.IsDevelopment())
         config.DocumentPath = "/swagger/{documentName}/swagger.json";
         config.DocExpansion = "list";
     });
+
 }
 app.UseHttpsRedirection();
 //string connectionString = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!;
