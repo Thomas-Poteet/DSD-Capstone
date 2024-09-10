@@ -1,7 +1,53 @@
 @page
-@model LoginModel
-@{
-    ViewData["Title"] = "Login";
-}
-<h1>@ViewData["Title"]</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <!-- Include local Bootstrap CSS -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #007bff; /* Blue background */
+            color: white; /* White text color for contrast */
+        }
+        .title-image {
+            max-width: 100%; /* Make sure image is responsive */
+            height: auto; /* Maintain aspect ratio */
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center vh-100">  
+        <div class="container">
+                <!-- Title Image -->
+                <div class="col-12 mb-8 text-center">
+                    <img src="~/images/Scenic Foods Banner.PNG" class="title-image" alt="DSD Logo">
+                </div>
+                <!-- Login Card -->
+            <div id="divLogin" class="card col-12 text-black">
+                <div class="card-header">
+                    <h3 class="col-12 text-center">DSD System</h3>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <label for="txtLoginUsername" class="form-label mb-0">Username</label>
+                        <input id="txtLoginEmail" type="email" class="form-control" placeholder="Username" aria-label="Email" required>
+                        <label for="txtLoginPassword" class="form-label mb-0">Password</label>
+                        <input id="txtLoginPassword" type="password" class="form-control" placeholder="Password" aria-label="Password" required>
 
+                        <button id="btnLogin" type="button" class="btn btn-secondary col-12 mt-2">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Include local jQuery and Bootstrap JS -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
