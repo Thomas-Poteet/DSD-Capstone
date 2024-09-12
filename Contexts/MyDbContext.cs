@@ -6,5 +6,9 @@ public class MyDbContext : DbContext
 
     public DbSet<Employee> Employees { get; set; }  // Define your DbSets (tables)
 
-    //public DbSet<Department> Departments { get; set; }
+    public DbSet<Product> Products { get; set; }
+
+    public DbSet<Vendor> Vendors { get; set; }
+    public DbSet<VendorProduct> VendorsProducts { get; set; }
+    public DbSet<Department> Departments { get; set; }
 }

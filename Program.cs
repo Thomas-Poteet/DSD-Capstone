@@ -50,45 +50,34 @@ app.MapGet("/helloyou", (string strName) => "Hello " + strName + "!");
 app.MapGet("/Employees", async (MyDbContext dbContext) => {
     var employees = await dbContext.Employees.ToListAsync();
     return Results.Ok(employees);
-
-    /*using var conn = new SqlConnection(connectionString);
-    conn.Open();
-
-    var command = new SqlCommand("SELECT * FROM Employees", conn);
-    using SqlDataReader reader = command.ExecuteReader();
-
-    if (reader.HasRows)
-    {
-        while (reader.Read())
-        {
-            rows.Add($"{reader.GetInt32(0)}, {reader.GetString(1)}, {reader.GetString(2)}");
-        }
-    }
-
-    return rows;
-    */
 })
 .WithName("GetEmployee");
 //.WithOpenApi();
+
+app.MapGet("/ProuctsByUPC", async (string upc, MyDbContext dbContext) => {
+    var conn = await dbContext.Products.FindAsync(upc);
+    if (conn == null)
+    {
+        return Results.NotFound();
+    }
+    else{
+        return Results.Ok(conn);
+    }
+})
+.WithName("GetProductByUPC");
+
+
+app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
+    dbContext.Products.Add(product);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{product.upc}", product);
+})
+.WithName("CreateProduct");
 
 app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
     dbContext.Employees.Add(employee);
     await dbContext.SaveChangesAsync();
     return Results.Created($"/entities/{employee.emp_no}", employee);
-    /*using var conn = new SqlConnection(connectionString);
-    conn.Open();
-
-    var command = new SqlCommand(
-        "INSERT INTO Persons (firstName, lastName) VALUES (@firstName, @lastName)",
-        conn);
-
-    command.Parameters.Clear();
-    command.Parameters.AddWithValue("@emp_no", employee.emp_no);
-    command.Parameters.AddWithValue("@firstName", employee.FirstName);
-    command.Parameters.AddWithValue("@lastName", employee.LastName);
-
-    using SqlDataReader reader = command.ExecuteReader();
-    */
 })
 .WithName("CreateEmployee");
 //.WithOpenApi();
