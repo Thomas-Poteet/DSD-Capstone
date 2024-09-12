@@ -2,11 +2,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <!-- Include local Bootstrap CSS -->
-    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         body {
             background-color: #007bff; /* Blue background */
@@ -34,7 +29,7 @@
                 <div class="card-body">
                     <form>
                         <label for="txtLoginUsername" class="form-label mb-0">Username</label>
-                        <input id="txtLoginEmail" type="email" class="form-control" placeholder="Username" aria-label="Email" required>
+                        <input id="txtLoginUsername" type="email" class="form-control" placeholder="Username" aria-label="Username" required>
                         <label for="txtLoginPassword" class="form-label mb-0">Password</label>
                         <input id="txtLoginPassword" type="password" class="form-control" placeholder="Password" aria-label="Password" required>
 
@@ -46,8 +41,24 @@
     </div>
 </div>
 
-    <!-- Include local jQuery and Bootstrap JS -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @section Scripts {
+        <script>
+            // Login button click event
+            $("#btnLogin").click(function () {
+                // Get the username and password
+                var username = $("#txtLoginUsername").val();
+                var password = $("#txtLoginPassword").val();
+
+                // Check if the username and password are correct
+                if (username == "admin" && password == "admin") {
+                    // Redirect to the home page
+                    window.location.href = "/Index";
+                } else {
+                    // Show an error message
+                    alert("Invalid username or password.");
+                }
+            });
+        </script>
+    }
 </body>
 </html>
