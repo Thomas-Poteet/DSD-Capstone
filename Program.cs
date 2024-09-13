@@ -1,4 +1,10 @@
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // For Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -31,13 +37,51 @@ if (!app.Environment.IsDevelopment())
         config.DocumentPath = "/swagger/{documentName}/swagger.json";
         config.DocExpansion = "list";
     });
+
 }
+app.UseHttpsRedirection();
+//string connectionString = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!;
+
 
 // Just to see how Swagger works
 app.MapGet("/hello", () => "Hello World!");
 app.MapGet("/helloyou", (string strName) => "Hello " + strName + "!");
 
-app.UseHttpsRedirection();
+app.MapGet("/Employees", async (MyDbContext dbContext) => {
+    var employees = await dbContext.Employees.ToListAsync();
+    return Results.Ok(employees);
+})
+.WithName("GetEmployee");
+//.WithOpenApi();
+
+app.MapGet("/ProuctsByUPC", async (string upc, MyDbContext dbContext) => {
+    var conn = await dbContext.Products.FindAsync(upc);
+    if (conn == null)
+    {
+        return Results.NotFound();
+    }
+    else{
+        return Results.Ok(conn);
+    }
+})
+.WithName("GetProductByUPC");
+
+
+app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
+    dbContext.Products.Add(product);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{product.upc}", product);
+})
+.WithName("CreateProduct");
+
+app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
+    dbContext.Employees.Add(employee);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{employee.emp_no}", employee);
+})
+.WithName("CreateEmployee");
+//.WithOpenApi();
+
 app.UseStaticFiles();
 
 app.UseRouting();
