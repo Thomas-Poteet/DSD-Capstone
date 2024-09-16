@@ -1,59 +1,184 @@
 @page
 @model InvoiceModel
+<body id="invoicePage">
+    <form class="h-100">
+        <div class="d-flex flex-column justify-content-between h-100 py-2">
+            @* Top Section *@
+            <div>
+                @* Top Section Title and Back Button*@
+                <div class="position-relative pb-2">
+                    <button id="btnBack" type="button" class="btn position-absolute start-0 border-0"><i
+                            class="fa-solid fa-chevron-left"></i></button>
+                    <h2 class="text-center"><span id="spnCreateEdit">Create</span> Invoice</h2>
+                </div>
+                @* Top Section Inputs *@
+                <div class="row">
+                    <div class="col-7">
+                        <label for="txtVendor">Vendor</label>
+                        <input type="text" id="txtVendor" class="form-control rounded-3 py-0" list="dlVendors">
+                        <datalist id="dlVendors">
+                            @foreach (var vendor in Model.Vendors)
+                            {
+                                <option value="@vendor"></option>
+                            }
+                        </datalist>
+                        <label for="txtInvoiceNumber" class="mt-1">Invoice Number</label>
+                        <input type="text" id="txtInvoiceNumber" class="form-control rounded-3 py-0">
+                    </div>
+                    <div class="col-5">
+                        <label for="txtDate">Date</label>
+                        <input type="date" id="txtDate" class="form-control rounded-3 py-0">
+                        <label for="txtVendorTotal" class="mt-1">Vendor Total</label>
+                        <input type="number" id="txtVendorTotal" class="form-control rounded-3 py-0">
+                    </div>
+                </div>
+                @* Card where UPC is entered. Will pop up count card after enter or Add Product button is pressed *@
+                <div class="card p-2 mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <input type="text" id="txtUPC" placeholder="UPC" class="form-control rounded-3 py-0">
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary py-1">Add Product</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* Middle Section - This div is where Item Dropdowns should be added *@
+            <div id="divItemsCard" class="card p-3 my-3 h-auto overflow-auto">
+                @* Card after UPC and Count is entered, but not dropped down *@
+                <div class="card p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="fw-bold m-0">UPC123456789</p>
+                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+                @* Card after UPC and Count is entered, but not dropped down *@
+                <div class="card p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="fw-bold m-0">UPC123456789</p>
+                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+                @* Card after UPC and Count is entered, and dropped down *@
+                <div class="card p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="fw-bold m-0">UPC123456789</p>
+                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div>
+                                <p class="m-0">Cost: $<span id="spnItemCost">0.00</span></p>
+                                <p class="m-0">Total Cost: $<span id="spnItemTotalCost">0.00</span></p>
+                                <p class="m-0">Gross Margin: <span id="spnItemGrossMargin">0.00</span>%</p>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <p class="m-0">Retail: $<span id="spnTotalCost">0.00</span></p>
+                                <p class="m-0">Total Retail: $<span id="spnTotalRetail">0.00</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @* Card after UPC and Count is entered, but not dropped down *@
+                <div class="card p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="fw-bold m-0">UPC123456789</p>
+                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+                @* Card after UPC and Count is entered, and dropped down *@
+                <div class="card p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="fw-bold m-0">UPC123456789</p>
+                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div>
+                                <p class="m-0">Cost: $<span id="spnItemCost">0.00</span></p>
+                                <p class="m-0">Total Cost: $<span id="spnItemTotalCost">0.00</span></p>
+                                <p class="m-0">Gross Margin: <span id="spnItemGrossMargin">0.00</span>%</p>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <p class="m-0">Retail: $<span id="spnTotalCost">0.00</span></p>
+                                <p class="m-0">Total Retail: $<span id="spnTotalRetail">0.00</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @* Bottom Section *@
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="m-0">Units: <span id="spnTotalUnits">0</span></p>
+                    <p class="m-0">Gross Margin: <span id="spnTotalGrossMargin">0.00</span>%</p>
+                </div>
+                <div class="d-flex flex-column align-items-end">
+                    <p class="m-0">Cost: $<span id="spnTotalCost">0.00</span></p>
+                    <p class="m-0">Retail: $<span id="spnTotalRetail">0.00</span></p>
+                </div>
+                <button type="submit" class="btn btn-primary h-auto">Save</button>
+            </div>
+        </div>
+    </form>
+</body>
 
-<form>
-    <div>
-        <h2>Invoice Info</h2>
-        <div class="d-flex align-items-center">
-            <label for="txtVendor" class="form-label mb-0 me-2">Vendor:</label>
-            <input type="text" id="txtVendor" class="form-control rounded-3 py-0 w-50" list="vendorList">
-            <datalist id="vendorList">
-                @foreach (var vendor in Model.Vendors)
-                {
-                    <option value="@vendor"></option>
-                }
-            </datalist>
-        </div>
-        <div class="d-flex align-items-center mt-2">
-            <label for="txtInvoiceNumber" class="form-label mb-0 me-2">Number:</label>
-            <input type="text" id="txtInvoiceNumber" class="form-control rounded-3 py-0 w-50" list="InvoiceList">
-            <datalist id="InvoiceList"></datalist>
-        </div>
-        <div class="d-flex align-items-center mt-2">
-            <label for="txtDate" class="form-label mb-0 me-2">Date:</label>
-            <input type="date" id="txtDate" class="form-control rounded-3 py-0 w-50">
-        </div>
-    </div>
-</form>
-
-@section Scripts{
+@section Scripts {
     <script>
-        $(document).ready(function(){
+        $(document).ready(function () {
             // date defualts to today
             $("#txtDate").val(getTodayDate());
 
-            // array of all invoice numbers as strings so we can go through them and filter when the user types
+
+            // Will probably need this wherever we allow the user to search for invoices by number
+        @* // array of all invoice numbers as strings so we can go through them and filter when the user types
             let arrInvoiceNumbers = @Json.Serialize(Model.InvoiceNumbers);
 
             // filtering invoice numbers by startsWith instead of contains
             $("#txtInvoiceNumber").on("input", function(){
-                var strInputVal = $('#txtInvoiceNumber').val().toLowerCase(); // Get the input value in lowercase
-                var strOptions = '';
+            var strInputVal = $('#txtInvoiceNumber').val().toLowerCase(); // Get the input value in lowercase
+            var strOptions = '';
 
-                if (strInputVal !== '') {
-                    // Iterate over all invoices and filter based on the input value
-                    arrInvoiceNumbers.forEach(function(strInvoiceNumber) {
-                        if ((strInvoiceNumber.toLowerCase()).startsWith(strInputVal)) {
-                            strOptions += '<option value="' + strInvoiceNumber + '" />';
-                        }
-                    });
-                    $('#InvoiceList').html(strOptions);
-                } else {
-                    // If the input is empty, clear the invoice list
-                    $("#InvoiceList").empty();
-                }
+            if (strInputVal !== '') {
+            // Iterate over all invoices and filter based on the input value
+            arrInvoiceNumbers.forEach(function(strInvoiceNumber) {
+            if ((strInvoiceNumber.toLowerCase()).startsWith(strInputVal)) {
+            strOptions += '<option value="' + strInvoiceNumber + '" />';
+            }
             });
-        })
+            $('#dlInvoices').html(strOptions);
+            } else {
+            // If the input is empty, clear the invoice list
+            $("#dlInvoices").empty();
+            }
+            }); *@
+                        })
 
         // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
