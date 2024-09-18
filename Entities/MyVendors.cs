@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 public class Vendor
 {
+    public required string vendor_id { get; set; }
     [Key]
     public required int vendor_no { get; set; }
     public required string name { get; set; }

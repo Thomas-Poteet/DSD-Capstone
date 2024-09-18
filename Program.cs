@@ -66,6 +66,12 @@ app.MapGet("/ProuctsByUPC", async (string upc, MyDbContext dbContext) => {
 })
 .WithName("GetProductByUPC");
 
+app.MapGet("/VendorNames", async (MyDbContext dbContext) => {
+    var conn = await dbContext.Vendors
+        .Select(v => v.name)
+        .ToListAsync();
+})
+.WithName("GetVendorNames");
 
 app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
     dbContext.Products.Add(product);
@@ -73,6 +79,13 @@ app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
     return Results.Created($"/entities/{product.upc}", product);
 })
 .WithName("CreateProduct");
+
+app.MapPost("/Vendors", async (Vendor vendor, MyDbContext dbContext) => {
+    dbContext.Vendors.Add(vendor);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{vendor.vendor_no}", vendor);
+})
+.WithName("CreateVendor");
 
 app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
     dbContext.Employees.Add(employee);
