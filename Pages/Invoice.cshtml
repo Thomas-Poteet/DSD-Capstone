@@ -1,13 +1,25 @@
 @page
 @model InvoiceModel
+<head>
+    <style>
+        .buttonPress{
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .buttonPress:active{
+            transform: translateY(1px);
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
 <body id="invoicePage">
     <form class="h-100">
         <div class="d-flex flex-column justify-content-between h-100 py-2">
             @* Top Section *@
             <div>
                 @* Top Section Title and Back Button*@
-                <div class="position-relative pb-2">
-                    <button id="btnBack" type="button" class="btn position-absolute start-0 border-0"><i
+                <div class="pb-2">
+                    <button id="btnBack" type="button" class="btn position-absolute start-0 border-0 shadow-none"><i
                             class="fa-solid fa-chevron-left"></i></button>
                     <h2 class="text-center"><span id="spnCreateEdit">Create</span> Invoice</h2>
                 </div>
@@ -39,112 +51,27 @@
                             <input type="text" id="txtUPC" placeholder="UPC" class="form-control rounded-3 py-0">
                         </div>
                         <div>
-                            <button type="button" class="btn btn-secondary py-1">Add Product</button>
+                            <button type="button" class="btn btn-secondary py-1 shadow-none buttonPress">Add Product</button>
                         </div>
                     </div>
                 </div>
             </div>
             @* Middle Section - This div is where Item Dropdowns should be added *@
             @* Everything within this div should be deleted when backend is implemented *@
-            <div id="divItemsCard" class="card p-3 my-3 h-auto overflow-auto">
-                @* Card after UPC and Count is entered, but not dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, but not dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, and dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-up"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div>
-                                <p class="m-0">Cost: $<span id="spnItemCost">0.00</span></p>
-                                <p class="m-0">Total Cost: $<span id="spnItemTotalCost">0.00</span></p>
-                                <p class="m-0">Gross Margin: <span id="spnItemGrossMargin">0.00</span>%</p>
-                            </div>
-                            <div class="d-flex flex-column align-items-end">
-                                <p class="m-0">Retail: $<span id="spnTotalCost">0.00</span></p>
-                                <p class="m-0">Total Retail: $<span id="spnTotalRetail">0.00</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, but not dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, and dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-up"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div>
-                                <p class="m-0">Cost: $<span id="spnItemCost">0.00</span></p>
-                                <p class="m-0">Total Cost: $<span id="spnItemTotalCost">0.00</span></p>
-                                <p class="m-0">Gross Margin: <span id="spnItemGrossMargin">0.00</span>%</p>
-                            </div>
-                            <div class="d-flex flex-column align-items-end">
-                                <p class="m-0">Retail: $<span id="spnTotalCost">0.00</span></p>
-                                <p class="m-0">Total Retail: $<span id="spnTotalRetail">0.00</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="divItemsCard" class="card px-2 pt-2 my-3 h-100 overflow-auto"></div>
             @* Bottom Section *@
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="m-0">Units: <span id="spnTotalUnits">0</span></p>
-                    <p class="m-0">Gross Margin: <span id="spnTotalGrossMargin">0.00</span>%</p>
+            <div class="d-flex align-items-center">
+                <div class="d-flex justify-content-between w-100 me-5">
+                    <div>
+                        <p class="m-0">Units: <span id="spnTotalUnits">0</span></p>
+                        <p class="m-0">Gross Margin: <span id="spnTotalGrossMargin">0.00</span>%</p>
+                    </div>
+                    <div class="d-flex flex-column align-items-end">
+                        <p class="m-0">Cost: $<span id="spnTotalCost">0.00</span></p>
+                        <p class="m-0">Retail: $<span id="spnTotalRetail">0.00</span></p>
+                    </div>
                 </div>
-                <div class="d-flex flex-column align-items-end">
-                    <p class="m-0">Cost: $<span id="spnTotalCost">0.00</span></p>
-                    <p class="m-0">Retail: $<span id="spnTotalRetail">0.00</span></p>
-                </div>
-                <button type="submit" class="btn btn-primary h-auto">Save</button>
+                <button type="button" class="btn btn-primary h-auto shadow-none buttonPress">Save</button>
             </div>
         </div>
     </form>
@@ -179,7 +106,7 @@
             $("#dlInvoices").empty();
             }
             }); *@
-                        })
+        })
 
         // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
@@ -189,5 +116,11 @@
             const day = String(today.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+
+        // Toggles item dropdowns
+        $(document).on('click', '.cardHeader', function() {
+            $(this).next('.dropdownContent').slideToggle();
+            $(this).find('i').toggleClass('fa-chevron-up fa-chevron-down');
+        })
     </script>
 }
