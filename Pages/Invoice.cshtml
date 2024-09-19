@@ -39,7 +39,7 @@
                             <input type="text" id="txtUPC" placeholder="UPC" class="form-control rounded-3 py-0">
                         </div>
                         <div>
-                            <button type="button" class="btn btn-secondary py-1">Add Product</button>
+                            <button type="button" id="btnAddProduct" class="btn btn-secondary py-1">Add Product</button>
                         </div>
                     </div>
                 </div>
@@ -156,6 +156,56 @@
             // date defualts to today
             $("#txtDate").val(getTodayDate());
 
+            // Event listener for the Add Product button
+            $("#btnAddProduct").on("click", function () {
+                let upc = $("#txtUPC").val();  // Get the UPC entered by the user
+
+                if (!upc) {
+                    alert("Please enter a UPC.");
+                    return;
+                }
+
+                $.ajax({
+                    url: `/products/${upc}`,
+                    method: 'GET',
+                    success: function (data) {
+                        // Append the product card to the UI
+                        console.log(data);
+                        let productCard = `
+                            <div class="card p-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="fw-bold m-0">${data.upc}</p>
+                                        <p class="fw-bold m-0"><span>Item Name</span> - <span>${data.name}</span></p>
+                                    </div>
+                                    <div>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div>
+                                    
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end">
+                                            <p class="m-0">Retail: $<span>${data.price}</span></p>
+                                            <p class="m-0">Total Retail: $<span>${data.price}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+
+                        // Add the new product card to the page
+                        $("#divItemsCard").append(productCard);
+
+                        // Clear the UPC input field after adding the product
+                        $("#txtUPC").val('');
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Product not found or an error occurred.");
+                    }
+                });
+            });
 
             // Will probably need this wherever we allow the user to search for invoices by number
         @* // array of all invoice numbers as strings so we can go through them and filter when the user types
@@ -179,7 +229,7 @@
             $("#dlInvoices").empty();
             }
             }); *@
-                        })
+        });
 
         // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
