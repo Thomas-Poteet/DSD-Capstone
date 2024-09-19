@@ -1,13 +1,28 @@
 @page
 @model InvoiceModel
+
+<head>
+    <style>
+        .buttonPress {
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .buttonPress:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
 <body id="invoicePage">
     <form class="h-100">
         <div class="d-flex flex-column justify-content-between h-100 py-2">
             @* Top Section *@
             <div>
                 @* Top Section Title and Back Button*@
-                <div class="position-relative pb-2">
-                    <button id="btnBack" type="button" class="btn position-absolute start-0 border-0"><i
+                <div class="pb-2">
+                    <button id="btnBack" type="button" class="btn position-absolute start-0 border-0 shadow-none"><i
                             class="fa-solid fa-chevron-left"></i></button>
                     <h2 class="text-center"><span id="spnCreateEdit">Create</span> Invoice</h2>
                 </div>
@@ -39,112 +54,27 @@
                             <input type="text" id="txtUPC" placeholder="UPC" class="form-control rounded-3 py-0">
                         </div>
                         <div>
-                            <button type="button" class="btn btn-secondary py-1">Add Product</button>
+                            <button type="button" id="btnAddProduct"
+                                class="btn btn-secondary py-1 shadow-none buttonPress">Add Product</button>
                         </div>
                     </div>
                 </div>
             </div>
-            @* Middle Section - This div is where Item Dropdowns should be added *@
-            @* Everything within this div should be deleted when backend is implemented *@
-            <div id="divItemsCard" class="card p-3 my-3 h-auto overflow-auto">
-                @* Card after UPC and Count is entered, but not dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, but not dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, and dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-up"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div>
-                                <p class="m-0">Cost: $<span id="spnItemCost">0.00</span></p>
-                                <p class="m-0">Total Cost: $<span id="spnItemTotalCost">0.00</span></p>
-                                <p class="m-0">Gross Margin: <span id="spnItemGrossMargin">0.00</span>%</p>
-                            </div>
-                            <div class="d-flex flex-column align-items-end">
-                                <p class="m-0">Retail: $<span id="spnTotalCost">0.00</span></p>
-                                <p class="m-0">Total Retail: $<span id="spnTotalRetail">0.00</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, but not dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
-                @* Card after UPC and Count is entered, and dropped down *@
-                <div class="card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="fw-bold m-0">UPC123456789</p>
-                            <p class="fw-bold m-0"><span>Item Name</span> - <span>12</span></p>
-                        </div>
-                        <div>
-                            <i class="fa-solid fa-chevron-up"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div>
-                                <p class="m-0">Cost: $<span id="spnItemCost">0.00</span></p>
-                                <p class="m-0">Total Cost: $<span id="spnItemTotalCost">0.00</span></p>
-                                <p class="m-0">Gross Margin: <span id="spnItemGrossMargin">0.00</span>%</p>
-                            </div>
-                            <div class="d-flex flex-column align-items-end">
-                                <p class="m-0">Retail: $<span id="spnTotalCost">0.00</span></p>
-                                <p class="m-0">Total Retail: $<span id="spnTotalRetail">0.00</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @* Middle Section - This div is where Item Dropdowns are added *@
+            <div id="divItemsCard" class="card px-2 pt-2 my-3 flex-grow-1 overflow-auto"></div>
             @* Bottom Section *@
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="m-0">Units: <span id="spnTotalUnits">0</span></p>
-                    <p class="m-0">Gross Margin: <span id="spnTotalGrossMargin">0.00</span>%</p>
+            <div class="d-flex align-items-center">
+                <div class="d-flex justify-content-between w-100 me-3">
+                    <div>
+                        <p class="m-0">Units: <span id="spnTotalUnits">0</span></p>
+                        <p class="m-0">Gross Margin: <span id="spnTotalGrossMargin">0.00</span>%</p>
+                    </div>
+                    <div class="d-flex flex-column align-items-end">
+                        <p class="m-0">Cost: $<span id="spnTotalCost">0.00</span></p>
+                        <p class="m-0">Retail: $<span id="spnTotalRetail">0.00</span></p>
+                    </div>
                 </div>
-                <div class="d-flex flex-column align-items-end">
-                    <p class="m-0">Cost: $<span id="spnTotalCost">0.00</span></p>
-                    <p class="m-0">Retail: $<span id="spnTotalRetail">0.00</span></p>
-                </div>
-                <button type="submit" class="btn btn-primary h-auto">Save</button>
+                <button type="button" id="btnSave" class="btn btn-primary h-auto shadow-none buttonPress">Save</button>
             </div>
         </div>
     </form>
@@ -156,6 +86,200 @@
             // date defualts to today
             $("#txtDate").val(getTodayDate());
 
+            numTotalUnits = 0;
+            numTotalCost = 0;
+            numTotalRetail = 0;
+            arrUPCs = [];
+
+            // Adds a the product with the UPC in the txtUPC input to the invoice when the Add Product button is pressed
+            $("#btnAddProduct").on("click", function () {
+                // Get the UPC from the input
+                const strUPC = $("#txtUPC").val();
+                $("#txtUPC").val("");
+
+                // If the input is empty, show an error message and return
+                if (strUPC === "") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please enter a UPC',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+                
+                // Check if the UPC is already on the invoice by seeing if its in arrUPCs
+                if (arrUPCs.includes(strUPC)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Cannot add duplicate item to invoice',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
+                // TODO: need to check that upc exists in the database
+
+                const strItemName = "Item Name"; // TODO: Placeholder for item name
+
+                Swal.fire({
+                    title: strItemName,
+                    input: 'number',
+                    inputLabel: 'Enter Item Count',
+                    inputAttributes: {
+                        min: 1,
+                        max: 999,
+                        step: 1   // only integers
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    // otherwise Swal will set body height to auto and the background will look weird
+                    willOpen: () => {
+                        document.body.style.setProperty('height', '100%', 'important');
+                    },
+                    inputValidator: (value) => {
+                        if (isNaN(value) || value == "") {
+                            return 'You need to enter a number!';
+                        }
+                        if (value < 0) {
+                            return 'Count cannot be negative!';
+                        }
+                        if (value % 1 !== 0) {
+                            return 'Count must be a whole number!';
+                        }
+                        if (value == 0) {
+                            return 'Count must be greater than 0!';
+                        }
+                        if (value > 999) {
+                            return 'Count must be less than 1000!';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const numItemCount = result.value;
+
+                        // These can be moved up to the DB call but not needed until now
+                        // TODO: Placeholder for item cost
+                        const numItemCost = (Math.floor(Math.random() * (2000 - 25 + 1)) + 25) / 100
+                        // TODO: Placeholder for item retail
+                        const numItemRetail = numItemCost * ((Math.floor(Math.random() * (199 - 105 + 1)) + 105) / 100);
+
+                        // Update the total units, cost, retail, and add UPC to array
+                        numTotalUnits += Number(numItemCount);
+                        numTotalCost += numItemCost * numItemCount;
+                        numTotalRetail += numItemRetail * numItemCount;
+                        arrUPCs.push(strUPC);
+
+                        // Update the total units, cost, and retail in the UI
+                        $("#spnTotalUnits").text(numTotalUnits);
+                        $("#spnTotalCost").text(numTotalCost.toFixed(2));
+                        $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
+                        $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+
+                        // Add the product to the invoice
+                        $("#divItemsCard").append(`
+                            <div class="card p-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center cardHeader">
+                                    <div>
+                                        <p class="fw-bold m-0">${strUPC}</p>
+                                        <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
+                                    </div>
+                                    <div>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="dropdownContent" style="display: none;">
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <div>
+                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                            <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end">
+                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            `);
+                    }
+                });
+            });
+
+            $("#btnSave").on("click", function() {
+                // Get the vendor, invoice number, date, and vendor total from the inputs
+                const strVendor = $("#txtVendor").val();
+                const strInvoiceNumber = $("#txtInvoiceNumber").val();
+                const strDate = $("#txtDate").val();
+                const numVendorTotal = $("#txtVendorTotal").val();
+
+                // If any of the inputs are empty, show an error message and return
+                if (strVendor === "" || strInvoiceNumber === "" || strDate === "" || numVendorTotal === "") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please fill out all fields',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
+                // If there are no items in the invoice, show an error message and return
+                if (numTotalUnits === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please add at least one item to the invoice',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
+                // If vendor total does not equal invoice total, show an error message and return
+                if (numVendorTotal !== numTotalCost.toFixed(2)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Vendor total does not match invoice total',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
+                // TODO: Placeholder for saving the invoice to the database
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Invoice saved successfully',
+                    // otherwise Swal will set body height to auto and the background will look weird
+                    willOpen: () => {
+                        document.body.style.setProperty('height', '100%', 'important');
+                    }
+                });
+            });
+
+            // Toggles item dropdowns
+            $(document).on('click', '.cardHeader', function () {
+                $(this).next('.dropdownContent').slideToggle();
+                $(this).find('i').toggleClass('fa-chevron-up fa-chevron-down');
+            });
 
             // Will probably need this wherever we allow the user to search for invoices by number
         @* // array of all invoice numbers as strings so we can go through them and filter when the user types
@@ -179,7 +303,7 @@
             $("#dlInvoices").empty();
             }
             }); *@
-                        })
+                        });
 
         // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
@@ -189,5 +313,6 @@
             const day = String(today.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+
     </script>
 }
