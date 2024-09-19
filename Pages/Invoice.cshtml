@@ -96,6 +96,20 @@
                 // Get the UPC from the input
                 const strUPC = $("#txtUPC").val();
 
+                // check if the UPC is empty
+                if (strUPC === "") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please enter a UPC',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
                 // Check if the UPC is already on the invoice by seeing if its in arrUPCs
                 if (arrUPCs.includes(strUPC)) {
                     Swal.fire({
