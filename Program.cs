@@ -54,18 +54,34 @@ app.MapGet("/Employees", async (MyDbContext dbContext) => {
 .WithName("GetEmployee");
 //.WithOpenApi();
 
-app.MapGet("/ProuctsByUPC", async (string upc, MyDbContext dbContext) => {
-    var conn = await dbContext.Products.FindAsync(upc);
+app.MapGet("/products/{upc}", async (MyDbContext dbContext, string upc) => {
+    var conn = await dbContext.Products.FirstOrDefaultAsync(p => p.upc == upc);
     if (conn == null)
     {
-        return Results.NotFound();
+        return Results.NotFound("Product not found");
     }
     else{
-        return Results.Ok(conn);
+        return Results.Ok(new
+        {
+            UPC = conn.upc,
+            Name = conn.description,
+            Price = conn.normal_price
+        });
     }
 })
 .WithName("GetProductByUPC");
 
+app.MapGet("/VendorNames", async (MyDbContext dbContext) => {
+    var conn = await dbContext.Vendors
+        .Select(v => v.name)
+        .ToListAsync();
+})
+.WithName("GetVendorNames");
+
+app.MapGet("/Products", async (MyDbContext dbContext) => {
+    var conn = await dbContext.Products.ToListAsync();
+    return Results.Ok(conn);
+});
 
 app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
     dbContext.Products.Add(product);
@@ -73,6 +89,13 @@ app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
     return Results.Created($"/entities/{product.upc}", product);
 })
 .WithName("CreateProduct");
+
+app.MapPost("/Vendors", async (Vendor vendor, MyDbContext dbContext) => {
+    dbContext.Vendors.Add(vendor);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{vendor.vendor_no}", vendor);
+})
+.WithName("CreateVendor");
 
 app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
     dbContext.Employees.Add(employee);
