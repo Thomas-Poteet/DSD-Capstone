@@ -96,20 +96,6 @@
                 // Get the UPC from the input
                 const strUPC = $("#txtUPC").val();
 
-                // If the input is empty, show an error message and return
-                if (strUPC === "") {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Please enter a UPC',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
-                    });
-                    return;
-                }
-
                 // Check if the UPC is already on the invoice by seeing if its in arrUPCs
                 if (arrUPCs.includes(strUPC)) {
                     Swal.fire({
@@ -128,11 +114,11 @@
                 $.ajax({
                     url: `/products/${strUPC}`,
                     method: 'GET',
-                    success: function (data) {
+                    success: function (data, xhr) {
                         // Append the product card to the UI
                         console.log(data);
 
-                        const strItemName = data.name; // TODO: Placeholder for item name
+                        const strItemName = data.name;
 
                         Swal.fire({
                             title: strItemName,
@@ -188,122 +174,44 @@
 
                                 // Add the product to the invoice
                                 $("#divItemsCard").append(`
-                                <div class="card p-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center cardHeader">
-                                        <div>
-                                            <p class="fw-bold m-0">${strUPC}</p>
-                                            <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                        </div>
-                                        <div>
-                                            <i class="fa-solid fa-chevron-down"></i>
-                                        </div>
-                                    </div>
-                                    <div class="dropdownContent" style="display: none;">
-                                        <div class="d-flex justify-content-between mt-2">
+                                    <div class="card p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center cardHeader">
                                             <div>
-                                                <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                <p class="fw-bold m-0">${strUPC}</p>
+                                                <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
                                             </div>
-                                            <div class="d-flex flex-column align-items-end">
-                                                <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                                <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                            <div>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </div>
+                                        </div>
+                                        <div class="dropdownContent" style="display: none;">
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <div>
+                                                    <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                                    <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                                    <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                </div>
+                                                <div class="d-flex flex-column align-items-end">
+                                                    <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                                    <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                `);
+                                    `);
                             }
                         });
                     },
                     error: function (xhr, status, error) {
-                        alert("Product not found or an error occurred.");
-                    }
-                });
-
-                const strItemName = "Item Name"; // TODO: Placeholder for item name
-
-                Swal.fire({
-                    title: strItemName,
-                    input: 'number',
-                    inputLabel: 'Enter Item Count',
-                    inputAttributes: {
-                        min: 1,
-                        max: 999,
-                        step: 1   // only integers
-                    },
-                    showCancelButton: true,
-                    confirmButtonText: 'Submit',
-                    // otherwise Swal will set body height to auto and the background will look weird
-                    willOpen: () => {
-                        document.body.style.setProperty('height', '100%', 'important');
-                    },
-                    inputValidator: (value) => {
-                        if (isNaN(value) || value == "") {
-                            return 'You need to enter a number!';
-                        }
-                        if (value < 0) {
-                            return 'Count cannot be negative!';
-                        }
-                        if (value % 1 !== 0) {
-                            return 'Count must be a whole number!';
-                        }
-                        if (value == 0) {
-                            return 'Count must be greater than 0!';
-                        }
-                        if (value > 999) {
-                            return 'Count must be less than 1000!';
-                        }
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const numItemCount = result.value;
-
-                        // These can be moved up to the DB call but not needed until now
-                        // TODO: Placeholder for item cost
-                        const numItemCost = (Math.floor(Math.random() * (2000 - 25 + 1)) + 25) / 100
-                        // TODO: Placeholder for item retail
-                        const numItemRetail = numItemCost * ((Math.floor(Math.random() * (199 - 105 + 1)) + 105) / 100);
-
-                        // Update the total units, cost, retail, and add UPC to array
-                        numTotalUnits += Number(numItemCount);
-                        numTotalCost += numItemCost * numItemCount;
-                        numTotalRetail += numItemRetail * numItemCount;
-                        arrUPCs.push(strUPC);
-
-                        // Update the total units, cost, and retail in the UI
-                        $("#spnTotalUnits").text(numTotalUnits);
-                        $("#spnTotalCost").text(numTotalCost.toFixed(2));
-                        $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
-                        $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
-
-                        // Add the product to the invoice
-                        $("#divItemsCard").append(`
-                                <div class="card p-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center cardHeader">
-                                        <div>
-                                            <p class="fw-bold m-0">${strUPC}</p>
-                                            <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                        </div>
-                                        <div>
-                                            <i class="fa-solid fa-chevron-down"></i>
-                                        </div>
-                                    </div>
-                                    <div class="dropdownContent" style="display: none;">
-                                        <div class="d-flex justify-content-between mt-2">
-                                            <div>
-                                                <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
-                                            </div>
-                                            <div class="d-flex flex-column align-items-end">
-                                                <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                                <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                `);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Product not found or an error occurred',
+                            // otherwise Swal will set body height to auto and the background will look weird
+                            willOpen: () => {
+                                document.body.style.setProperty('height', '100%', 'important');
+                            }
+                        });
                     }
                 });
             });
@@ -397,7 +305,7 @@
             $("#dlInvoices").empty();
             }
             }); *@
-                            });
+                                });
 
         // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
