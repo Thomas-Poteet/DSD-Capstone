@@ -16,14 +16,14 @@
 </head>
 
 <body id="invoicePage">
-    <form class="h-100">
+    <form class="h-100 mx-auto" style="max-width: 500px;">
         <div class="d-flex flex-column justify-content-between h-100 py-2">
             @* Top Section *@
             <div>
                 @* Top Section Title and Back Button*@
                 <div class="pb-2">
-                    <button id="btnBack" type="button" class="btn position-absolute start-0 border-0 shadow-none"><i
-                            class="fa-solid fa-chevron-left"></i></button>
+                    <a id="btnBack" class="btn position-absolute px-0 shadow-none" asp-page="/Dashboard"><i
+                            class="fa-solid fa-chevron-left"></i></a>
                     <h2 class="text-center"><span id="spnCreateEdit">Create</span> Invoice</h2>
                 </div>
                 @* Top Section Inputs *@
@@ -188,31 +188,31 @@
 
                                 // Add the product to the invoice
                                 $("#divItemsCard").append(`
-                                    <div class="card p-2 mb-2">
-                                        <div class="d-flex justify-content-between align-items-center cardHeader">
-                                            <div>
-                                                <p class="fw-bold m-0">${strUPC}</p>
-                                                <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                            </div>
-                                            <div>
-                                                <i class="fa-solid fa-chevron-down"></i>
-                                            </div>
-                                        </div>
-                                        <div class="dropdownContent" style="display: none;">
-                                            <div class="d-flex justify-content-between mt-2">
-                                                <div>
-                                                    <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                    <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                    <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                            <div class="card p-2 mb-2">
+                                                <div class="d-flex justify-content-between align-items-center cardHeader">
+                                                    <div>
+                                                        <p class="fw-bold m-0">${strUPC}</p>
+                                                        <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
+                                                    </div>
+                                                    <div>
+                                                        <i class="fa-solid fa-chevron-down"></i>
+                                                    </div>
                                                 </div>
-                                                <div class="d-flex flex-column align-items-end">
-                                                    <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                                    <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                <div class="dropdownContent" style="display: none;">
+                                                    <div class="d-flex justify-content-between mt-2">
+                                                        <div>
+                                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                                            <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                        </div>
+                                                        <div class="d-flex flex-column align-items-end">
+                                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    `);
+                                            `);
                             }
                         });
                     },
@@ -267,10 +267,17 @@
 
                 // If vendor total does not equal invoice total, show an error message and return
                 if (numVendorTotal !== numTotalCost.toFixed(2)) {
+                    if (numVendorTotal < numTotalCost.toFixed(2)) {
+                        numBalance = (numTotalCost.toFixed(2) - numVendorTotal).toFixed(2);
+                        strMessage = `Vendor total is less than invoice total by $${numBalance}`;
+                    } else {
+                        numBalance = (numVendorTotal - numTotalCost.toFixed(2)).toFixed(2);
+                        strMessage = `Vendor total is greater than invoice total by $${numBalance}`;
+                    }
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Vendor total does not match invoice total',
+                        text: strMessage,
                         // otherwise Swal will set body height to auto and the background will look weird
                         willOpen: () => {
                             document.body.style.setProperty('height', '100%', 'important');
@@ -319,7 +326,7 @@
             $("#dlInvoices").empty();
             }
             }); *@
-                                });
+                                        });
 
         // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
