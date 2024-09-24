@@ -1,19 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace DSD_Capstone.Pages;
 
 public class LoginModel : PageModel
 {
-    private readonly ILogger<IndexModel> _logger;
+    private readonly MyDbContext db;
 
-    public LoginModel(ILogger<IndexModel> logger)
+    public LoginModel(MyDbContext context)
     {
-        _logger = logger;
+        db = context;
     }
-
-    public void OnGet()
+    public List<string> Usernames { get; set; } = new List<string>();
+    public async Task OnGetAsync()
     {
-
+        // Query the database to fill the Usernames list
+        Usernames = await db.Employees
+            .Select(u => u.UserName)
+            .ToListAsync();
     }
 }

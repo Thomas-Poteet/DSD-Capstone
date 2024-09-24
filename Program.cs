@@ -42,17 +42,28 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 //string connectionString = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!;
 
-
-// Just to see how Swagger works
-app.MapGet("/hello", () => "Hello World!");
-app.MapGet("/helloyou", (string strName) => "Hello " + strName + "!");
-
 app.MapGet("/Employees", async (MyDbContext dbContext) => {
     var employees = await dbContext.Employees.ToListAsync();
     return Results.Ok(employees);
 })
 .WithName("GetEmployee");
 //.WithOpenApi();
+
+// Get password for employee username
+app.MapGet("/Employees/{username}", async (MyDbContext dbContext, string username) => {
+    var conn = await dbContext.Employees.FirstOrDefaultAsync(e => e.UserName == username);
+    if (conn == null)
+    {
+        return Results.NotFound("Employee not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            Password = conn.AdminPassword
+        });
+    }
+})
+.WithName("GetPasswordByUsername");
 
 app.MapGet("/products/{upc}", async (MyDbContext dbContext, string upc) => {
     var conn = await dbContext.Products.FirstOrDefaultAsync(p => p.upc == upc);
@@ -112,5 +123,10 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+// makes login default page
+app.MapGet("/", (MyDbContext dbContext) => {
+    return Results.Redirect("/Login");
+});
 
 app.Run();
