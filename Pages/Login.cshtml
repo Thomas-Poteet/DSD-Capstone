@@ -62,11 +62,12 @@
                 const strPassword = $("#txtPassword").val();
 
                 if (!strUsername) {
-                    swal.fire({
+                    Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Please enter a username',
                         showConfirmButton: false,
-                        timer: 10000000
+                        timer: 1000
                     });
                     return;
                 }
@@ -78,7 +79,8 @@
                             if (data.password == strPassword) {
                                 window.location.href = "/Dashboard";
                             } else {
-                                swal.fire({
+                                Swal.fire({
+                                    heightAuto: false,
                                     icon: 'error',
                                     title: 'Invalid admin password',
                                     showConfirmButton: false,
@@ -87,7 +89,8 @@
                             }
                         },
                         error: function () {
-                            swal.fire({
+                            Swal.fire({
+                                heightAuto: false,
                                 icon: 'error',
                                 title: 'User not found',
                                 showConfirmButton: false,

@@ -99,13 +99,10 @@
                 // check if the UPC is empty
                 if (strUPC === "") {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Please enter a UPC',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Please enter a UPC'
                     });
                     return;
                 }
@@ -113,13 +110,10 @@
                 // Check if the UPC is already on the invoice by seeing if its in arrUPCs
                 if (arrUPCs.includes(strUPC)) {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Cannot add duplicate item to invoice',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Cannot add duplicate item to invoice'
                     });
                     $("#txtUPC").val("");
                     return;
@@ -135,6 +129,7 @@
                         const strItemName = data.name;
 
                         Swal.fire({
+                            heightAuto: false,
                             title: strItemName,
                             input: 'number',
                             inputLabel: 'Enter Item Count',
@@ -145,10 +140,6 @@
                             },
                             showCancelButton: true,
                             confirmButtonText: 'Submit',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            },
                             inputValidator: (value) => {
                                 if (isNaN(value) || value == "") {
                                     return 'You need to enter a number!';
@@ -218,13 +209,10 @@
                     },
                     error: function (xhr, status, error) {
                         Swal.fire({
+                            heightAuto: false,
                             icon: 'error',
                             title: 'Error',
-                            text: 'Product not found or an error occurred',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            }
+                            text: 'Product not found or an error occurred'
                         });
                     }
                 });
@@ -240,13 +228,10 @@
                 // If any of the inputs are empty, show an error message and return
                 if (strVendor === "" || strInvoiceNumber === "" || strDate === "" || numVendorTotal === "") {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Please fill out all fields',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Please fill out all fields'
                     });
                     return;
                 }
@@ -254,13 +239,10 @@
                 // If there are no items in the invoice, show an error message and return
                 if (numTotalUnits === 0) {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Please add at least one item to the invoice',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Please add at least one item to the invoice'
                     });
                     return;
                 }
@@ -275,26 +257,20 @@
                         strMessage = `Vendor total is greater than invoice total by $${numBalance}`;
                     }
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: strMessage,
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: strMessage
                     });
                     return;
                 }
 
                 // TODO: Placeholder for saving the invoice to the database
                 Swal.fire({
+                    heightAuto: false,
                     icon: 'success',
                     title: 'Success',
-                    text: 'Invoice saved successfully',
-                    // otherwise Swal will set body height to auto and the background will look weird
-                    willOpen: () => {
-                        document.body.style.setProperty('height', '100%', 'important');
-                    }
+                    text: 'Invoice saved successfully'
                 });
             });
 
