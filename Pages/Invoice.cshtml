@@ -125,6 +125,51 @@
                     return;
                 }
 
+                const vendorName = document.getElementById("txtVendor").value;
+                console.log(vendorName); 
+
+                $.ajax({
+                    url: `/vendors/${vendorName}`,
+                    method: 'GET', 
+                    success: function (data, xhr) {
+                        const vendor_no = data.vendor_no
+                        console.log(vendor_no)
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Vendor not found or an error occurred',
+                            // otherwise Swal will set body height to auto and the background will look weird
+                            willOpen: () => {
+                                document.body.style.setProperty('height', '100%', 'important');
+                            }
+                        });
+                        return;
+                    }
+                });
+
+                $.ajax({
+                    url: `/vendorsProducts/${strUPC, vendor_no}`,
+                    method: 'GET', 
+                    success: function (data, xhr) {
+                        console.log(data.cost)
+                        const vendor_cost = data.cost
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Vendor product not found or an error occurred',
+                            // otherwise Swal will set body height to auto and the background will look weird
+                            willOpen: () => {
+                                document.body.style.setProperty('height', '100%', 'important');
+                            }
+                        });
+                        return;
+                    }
+                })
+
                 $.ajax({
                     url: `/products/${strUPC}`,
                     method: 'GET',
@@ -171,7 +216,7 @@
                                 const numItemCount = result.value;
 
                                 // TODO: Placeholder for item cost
-                                const numItemCost = (Math.floor(Math.random() * (2000 - 25 + 1)) + 25) / 100
+                                const numItemCost = vendor_cost;
                                 const numItemRetail = data.price;
 
                                 // Update the total units, cost, retail, and add UPC to array
@@ -229,6 +274,12 @@
                     }
                 });
             });
+
+            function getVendorValue() {
+                var vendorValue = document.getElementById("txtVendor").value;
+                console.log(vendorValue); // You can handle this value as needed
+                return vendorValue;
+            }
 
             $("#btnSave").on("click", function () {
                 // Get the vendor, invoice number, date, and vendor total from the inputs
