@@ -21,7 +21,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Logo</span>
+            <span style=font-family: Expressa EF Heavy; class="navbar-brand mb-0 h1">Logo</span>
             <div>
                 <button class="btn btn-dark me-2">Create Invoice</button>
                 <button class="btn btn-danger">Logout</button>
@@ -33,11 +33,14 @@
     <div class="container mt-3">
         <div class="row">
             <div class="col-md-4">
-                <label for="vendor">Vendor</label>
-                <select class="form-select" id="vendor">
-                    <option selected>All Vendors</option>
-                    <!-- Vendor options will be dynamically added here -->
-                </select>
+                <label for="txtVendor">Vendor</label>
+                        <input type="text" id="txtVendor" class="form-control rounded-3 py-0" list="dlVendors">
+                        <datalist id="dlVendors">
+                            @foreach (var vendor in Model.Vendors)
+                            {
+                                <option value="@vendor"></option>
+                            }
+                        </datalist>
             </div>
             <div class="col-md-3">
                 <label for="start-date">Start Date</label>
@@ -166,3 +169,4 @@
             }
         });
     </script>
+</body>
