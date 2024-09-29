@@ -70,21 +70,7 @@
 
     <!-- jQuery and AJAX script -->
     <script>
-        $(document).ready(function() {
-            // Fetch vendors from the API and populate the vendor dropdown
-            $.ajax({
-                url: '/api/Vendors',
-                method: 'GET',
-                success: function(data) {
-                    data.forEach(vendor => {
-                        let optionHTML = `<option value="${vendor.id}">${vendor.name}</option>`;
-                        $('#vendor').append(optionHTML);
-                    });
-                },
-                error: function(error) {
-                    console.error("Error fetching vendors:", error);
-                }
-            });
+        $(document).ready(function() {            
 
             // Fetch invoices when "Search" button is clicked
             $('#searchBtn').on('click', function() {
@@ -93,7 +79,10 @@
                 const endDate = $('#end-date').val();
                 const invoiceNumber = $('#invoice-number').val();
 
+                //need to add error checking
+
                 // Perform an AJAX request to fetch filtered invoices
+                //need to fix this call
                 $.ajax({
                     url: `/api/Invoices?vendorId=${vendorId}&startDate=${startDate}&endDate=${endDate}&invoiceNumber=${invoiceNumber}`,
                     method: 'GET',
