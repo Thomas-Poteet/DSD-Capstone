@@ -65,58 +65,42 @@
                 const strUsername = $("#txtUsername").val();
                 const strPassword = $("#txtPassword").val();
 
-                if (!strUsername) {
+                // Check if the username and password are empty
+                if (strUsername == "" || strPassword == "") {
                     Swal.fire({
                         heightAuto: false,
                         icon: 'error',
-                        title: 'Please enter a username',
+                        title: 'Please enter a username and password',
                         showConfirmButton: false,
                         timer: 1000
                     });
-                    return;
+                }
+                // making sure password is only numbers
+                else if (isNaN(strPassword)) {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Invalid admin password',
+                        showConfirmButton: false,
+                        timer: 1000
+                    });
                 }
                 else {
                     $.ajax({
-                        url: `/Employees/${strUsername}`,
-                        method: 'GET',
-                        success: function (data) {
-                            if (data.password == strPassword) {
-                                // calls the OnPostAsync method in Login.cshtml.cs
-                                $.ajax({
-                                    url: '/Login',
-                                    method: 'POST',
-                                    data: { Username: strUsername },
-                                    headers: {
-                                        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                                    },
-                                    success: function (response) {
-                                        if (response.success) {
-                                            window.location.href = "/Dashboard";
-                                        } else {
-                                            Swal.fire({
-                                                heightAuto: false,
-                                                icon: 'error',
-                                                title: 'Failed to create session',
-                                                showConfirmButton: false,
-                                                timer: 1000
-                                            });
-                                        }
-                                    },
-                                    error: function () {
-                                        Swal.fire({
-                                            heightAuto: false,
-                                            icon: 'error',
-                                            title: 'Error creating session',
-                                            showConfirmButton: false,
-                                            timer: 1000
-                                        });
-                                    }
-                                });
+                        url: '/Login',
+                        method: 'POST',
+                        data: { Username: strUsername, Password: strPassword },
+                        headers: {
+                            RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                window.location.href = "/Dashboard";
                             } else {
                                 Swal.fire({
                                     heightAuto: false,
                                     icon: 'error',
-                                    title: 'Invalid admin password',
+                                    title: response.message,
                                     showConfirmButton: false,
                                     timer: 1000
                                 });
@@ -126,12 +110,12 @@
                             Swal.fire({
                                 heightAuto: false,
                                 icon: 'error',
-                                title: 'User not found',
+                                title: 'Error creating session',
                                 showConfirmButton: false,
                                 timer: 1000
                             });
                         }
-                    });
+                    })
                 }
             });
         </script>

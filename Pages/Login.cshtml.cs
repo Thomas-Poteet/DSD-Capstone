@@ -24,13 +24,28 @@ public class LoginModel(MyDbContext context) : PageModel
         Usernames = await db.Employees
             .Select(u => u.UserName)
             .ToListAsync();
-        
+
         return Page();
     }
     public async Task<IActionResult> OnPostAsync(LoginRequest request)
     {
-        var claims = new List<Claim>()
+        // Check if the user exists in the database
+        var user = await db.Employees
+            .FirstOrDefaultAsync(u => u.UserName == request.Username);
+        if (user == null)
         {
+            return new JsonResult(new { success = false, message = "User not found" });
+        }
+
+        // Check if the password is correct
+        if (user.AdminPassword != request.Password)
+        {
+            return new JsonResult(new { success = false, message = "Invalid admin password" });
+        }
+
+
+        // Cookie creation
+        var claims = new List<Claim>() {
             new(ClaimTypes.Name, request.Username)
         };
 
@@ -50,5 +65,6 @@ public class LoginModel(MyDbContext context) : PageModel
     public class LoginRequest
     {
         public required string Username { get; set; }
+        public required int Password { get; set; }
     }
 }
