@@ -34,9 +34,10 @@
                     </div>
                     <div class="card-body">
                         <form>
+                            @Html.AntiForgeryToken()
                             <label for="txtUsername" class="form-label">Username</label>
                             <input type="text" id="txtUsername" class="form-control" placeholder="Username"
-                                list="dlUsernames" required>
+                                autocomplete="username" list="dlUsernames" required>
                             <datalist id="dlUsernames">
                                 @foreach (var username in Model.Usernames)
                                 {
@@ -46,7 +47,7 @@
 
                             <label for="txtPassword" class="form-label">Password</label>
                             <input id="txtPassword" type="password" class="form-control" placeholder="Password"
-                                required>
+                                autocomplete="current-password" required>
 
                             <button id="btnLogin" type="button" class="btn btn-secondary col-12 mt-3">Login</button>
                         </form>
@@ -80,7 +81,37 @@
                         method: 'GET',
                         success: function (data) {
                             if (data.password == strPassword) {
-                                window.location.href = "/Dashboard";
+                                // calls the OnPostAsync method in Login.cshtml.cs
+                                $.ajax({
+                                    url: '/Login',
+                                    method: 'POST',
+                                    data: { Username: strUsername },
+                                    headers: {
+                                        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            window.location.href = "/Dashboard";
+                                        } else {
+                                            Swal.fire({
+                                                heightAuto: false,
+                                                icon: 'error',
+                                                title: 'Failed to create session',
+                                                showConfirmButton: false,
+                                                timer: 1000
+                                            });
+                                        }
+                                    },
+                                    error: function () {
+                                        Swal.fire({
+                                            heightAuto: false,
+                                            icon: 'error',
+                                            title: 'Error creating session',
+                                            showConfirmButton: false,
+                                            timer: 1000
+                                        });
+                                    }
+                                });
                             } else {
                                 Swal.fire({
                                     heightAuto: false,
