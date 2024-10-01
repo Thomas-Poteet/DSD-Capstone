@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,17 @@ builder.Services.AddOpenApiDocument(config =>
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login";
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -41,11 +53,6 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 //string connectionString = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!;
-
-
-// Just to see how Swagger works
-app.MapGet("/hello", () => "Hello World!");
-app.MapGet("/helloyou", (string strName) => "Hello " + strName + "!");
 
 app.MapGet("/Employees", async (MyDbContext dbContext) => {
     var employees = await dbContext.Employees.ToListAsync();
@@ -161,6 +168,8 @@ app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
