@@ -24,6 +24,22 @@ public class LoginTests : PageTest
         await Expect(Page).ToHaveTitleAsync("Login - DSD_Capstone");
     }
 
+    // check if dashboard redirects to login if the user is not logged in
+    [Test]
+    public async Task RedirectDashboard()
+    {
+        await Page.GotoAsync("http://localhost:5208/Dashboard");
+        await Expect(Page).ToHaveTitleAsync("Login - DSD_Capstone");
+    }
+
+    // check if invoice page redirects to login if the user is not logged in
+    [Test]
+    public async Task RedirectInvoice()
+    {
+        await Page.GotoAsync("http://localhost:5208/Invoice");
+        await Expect(Page).ToHaveTitleAsync("Login - DSD_Capstone");
+    }
+
     // check if datalist is filled with users
     [Test]
     public async Task CheckDatalist()
@@ -36,8 +52,9 @@ public class LoginTests : PageTest
     [Test]
     public async Task EmptyUsername()
     {
+        await Page.GetByPlaceholder("Password").FillAsync("111111");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
-        await Expect(Page.GetByLabel("Please enter a username")).ToBeVisibleAsync();
+        await Expect(Page.GetByLabel("Please enter a username and password")).ToBeVisibleAsync();
     }
 
     // check error message when the user is not found
@@ -45,6 +62,7 @@ public class LoginTests : PageTest
     public async Task UserNotFound()
     {
         await Page.GetByPlaceholder("Username").FillAsync("PParker");
+        await Page.GetByPlaceholder("Password").FillAsync("111111");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
         await Expect(Page.GetByLabel("User not found")).ToBeVisibleAsync();
     }
@@ -55,7 +73,7 @@ public class LoginTests : PageTest
     {
         await Page.GetByPlaceholder("Username").FillAsync("PParker1");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
-        await Expect(Page.GetByLabel("Invalid admin password")).ToBeVisibleAsync();
+        await Expect(Page.GetByLabel("Please enter a username and password")).ToBeVisibleAsync();
     }
 
     // check if the login is successful with valid credentials
@@ -81,6 +99,18 @@ public class DashboardTests : PageTest
         await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
     }
 
+    // check if login redirects to dashboard if the user is logged in
+    [Test]
+    public async Task AutoLogin()
+    {
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Logout" }).ClickAsync();
+        await Page.GetByPlaceholder("Username").FillAsync("PParker1");
+        await Page.GetByPlaceholder("Password").FillAsync("111111");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
+        await Page.ReloadAsync();
+        await Expect(Page).ToHaveTitleAsync("Dashboard - DSD_Capstone");
+    }
+
     // check if Create Invoice button works
     [Test]
     public async Task CreateInvoiceButton()
@@ -88,6 +118,16 @@ public class DashboardTests : PageTest
         await Page.GetByRole(AriaRole.Button, new() { Name = "Create Invoice" }).ClickAsync();
         await Expect(Page).ToHaveTitleAsync("Create Invoice - DSD_Capstone");
         await Expect(Page.GetByRole(AriaRole.Heading)).ToContainTextAsync("Create Invoice");
+    }
+
+    // check if Logout button works
+    [Test]
+    public async Task LogoutButton()
+    {
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Logout" }).ClickAsync();
+        await Expect(Page).ToHaveTitleAsync("Login - DSD_Capstone");
+        await Page.GotoAsync("http://localhost:5208/Dashboard");
+        await Expect(Page).ToHaveTitleAsync("Login - DSD_Capstone");
     }
 }
 
