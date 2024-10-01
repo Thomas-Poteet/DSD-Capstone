@@ -95,6 +95,7 @@
             $("#btnAddProduct").on("click", function () {
                 // Get the UPC from the input
                 const strUPC = $("#txtUPC").val();
+                var vendorValue = document.getElementById("txtVendor").value;
 
                 // check if the UPC is empty
                 if (strUPC === "") {
@@ -102,6 +103,20 @@
                         icon: 'error',
                         title: 'Error',
                         text: 'Please enter a UPC',
+                        // otherwise Swal will set body height to auto and the background will look weird
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
+                //check if vendor has been selected
+                if (vendorValue === "") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please select a vendor',
                         // otherwise Swal will set body height to auto and the background will look weird
                         willOpen: () => {
                             document.body.style.setProperty('height', '100%', 'important');
@@ -125,15 +140,8 @@
                     return;
                 }
                 //call the add product function to fetch product data and add it to invoice page
-                addProduct;
+                addProduct();
             });
-
-
-            function getVendorValue() {
-                var vendorValue = document.getElementById("txtVendor").value;
-                console.log(vendorValue); // You can handle this value as needed
-                return vendorValue;
-            }
 
             async function addProduct() {
                 try {

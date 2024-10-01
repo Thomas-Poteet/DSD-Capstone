@@ -71,6 +71,7 @@ app.MapGet("/vendorsProducts/{upc}/{vendor_no}", async (MyDbContext dbContext, s
 });
 
 
+//Get call to fetch the vendor_no based off the name of the vendor
 app.MapGet("/vendors/{vendorName}", async (MyDbContext dbContext, string vendorName) => {
     var conn = await dbContext.Vendors.FirstOrDefaultAsync(v => v.name == vendorName);
     if (conn == null)
@@ -84,6 +85,7 @@ app.MapGet("/vendors/{vendorName}", async (MyDbContext dbContext, string vendorN
         });
     }
 });
+
 
 //Get call to fetch a product from the products table using a given UPC code
 app.MapGet("/products/{upc}", async (MyDbContext dbContext, string upc) => {
@@ -118,9 +120,6 @@ app.MapGet("/Products", async (MyDbContext dbContext) => {
     var conn = await dbContext.Products.ToListAsync();
     return Results.Ok(conn);
 });
-
-
-//Get call to fetch a vendor_no from Vendors table using the vendor's
 
 
 //Post to create a new product
