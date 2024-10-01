@@ -139,7 +139,6 @@
                 //call the add product function to fetch product data and add it to invoice page
                 addProduct();
                 // empty UPC text box
-                $("#txtUPC").val("");
             });
 
             async function addProduct() {
@@ -248,6 +247,8 @@
 
                                         </div>
                                         `);
+                            //clear txtUPC value
+                            $("#txtUPC").val("");
                         }
                     });
                     
