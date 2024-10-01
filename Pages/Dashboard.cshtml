@@ -5,12 +5,47 @@
 }
 <h1>@ViewData["Title"]</h1>
 
+@Html.AntiForgeryToken()
 <button id="btnInvoices" class="btn btn-primary">Create Invoice</button>
+<button id="btnLogout" type="button" class="btn btn-danger">Logout</button>
 
 @section Scripts {
     <script>
         $("#btnInvoices").click(function () {
             window.location.href = "/invoice";
+        });
+
+        $("#btnLogout").click(function () {
+            // Calls the OnPostLogoutAsync method in Dashboard.cshtml.cs
+            $.ajax({
+                url: '/Dashboard?handler=Logout',
+                method: 'POST',
+                headers: {
+                    RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        window.location.href = "/Login";
+                    } else {
+                        Swal.fire({
+                            heightAuto: false,
+                            icon: 'error',
+                            title: 'Failed to destroy session',
+                            showConfirmButton: false,
+                            timer: 1000
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Error destroying session',
+                        showConfirmButton: false,
+                        timer: 1000
+                    });
+                }
+            });
         });
     </script>
 }
