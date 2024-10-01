@@ -1,5 +1,8 @@
 @page
 @model InvoiceModel
+@{
+    ViewData["Title"] = "Create Invoice";
+}
 
 <head>
     <style>
@@ -177,6 +180,9 @@
                                 $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
                                 $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
 
+                                // empty UPC text box
+                                $("#txtUPC").val("");
+                                
                                 // Add the product to the invoice
                                 $("#divItemsCard").append(`
                                             <div class="card p-2 mb-2">
