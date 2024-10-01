@@ -21,7 +21,9 @@
     <!-- Navbar -->
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <span style=font-family: Expressa EF Heavy; class="navbar-brand mb-0 h1">Logo</span>
+            <span>
+                <img src="~/images/scenic_logo.PNG" alt="Logo" width="60" height="60" class="d-inline-block align-text-top">
+            </span>
             <div>
                 <button class="btn btn-dark me-2">Create Invoice</button>
                 <button class="btn btn-danger">Logout</button>
@@ -39,7 +41,7 @@
                             @foreach (var vendor in Model.Vendors)
                             {
                                 <option value="@vendor"></option>
-                            }
+                            } 
                         </datalist>
             </div>
             <div class="col-md-3">
@@ -70,7 +72,7 @@
 
     <!-- jQuery and AJAX script -->
     <script>
-        $(document).ready(function() {            
+        $(document).ready(function() {     
 
             // Fetch invoices when "Search" button is clicked
             $('#searchBtn').on('click', function() {
@@ -84,7 +86,7 @@
                 // Perform an AJAX request to fetch filtered invoices
                 //need to fix this call
                 $.ajax({
-                    url: `/api/Invoices?vendorId=${vendorId}&startDate=${startDate}&endDate=${endDate}&invoiceNumber=${invoiceNumber}`,
+                    url: `/invoices?vendorId=${vendorId}&startDate=${startDate}&endDate=${endDate}&invoiceNumber=${invoiceNumber}`,
                     method: 'GET',
                     success: function(invoices) {
                         // Clear the previous invoices
