@@ -10,5 +10,12 @@ public class MyDbContext : DbContext
 
     public DbSet<Vendor> Vendors { get; set; }
     public DbSet<VendorProduct> VendorsProducts { get; set; }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<VendorProduct>()
+            .HasKey(vp => new { vp.vendor_no, vp.upc });  // Composite primary key
+
+        base.OnModelCreating(modelBuilder);
+    }
     public DbSet<Department> Departments { get; set; }
 }

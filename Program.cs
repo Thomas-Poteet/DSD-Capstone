@@ -56,8 +56,8 @@ app.MapGet("/Employees", async (MyDbContext dbContext) => {
 
 
 //Get call to fetch the cost of a product from the VendorsProducts table using a given UPC code and vendor_no
-app.MapGet("/vendorsProducts/{upc, vendor_no}", async (MyDbContext dbContext, string upc, string vendor_no) => {
-    var conn = await dbContext.VendorsProducts.FindAsync(upc, vendor_no);
+app.MapGet("/vendorsProducts/{upc}/{vendor_no}", async (MyDbContext dbContext, string upc, int vendor_no) => {
+    var conn = await dbContext.VendorsProducts.FindAsync(vendor_no, upc);
     if (conn == null)
     {
         return Results.NotFound("Vendor product not found");
@@ -65,7 +65,6 @@ app.MapGet("/vendorsProducts/{upc, vendor_no}", async (MyDbContext dbContext, st
     else{
         return Results.Ok(new
         {
-            UPC = conn.upc,
             Cost = conn.cost
         });
     }

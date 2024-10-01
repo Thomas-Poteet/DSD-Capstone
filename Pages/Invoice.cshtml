@@ -124,65 +124,75 @@
                     $("#txtUPC").val("");
                     return;
                 }
+                //call the add product function to fetch product data and add it to invoice page
+                addProduct;
+            });
 
-                const vendorName = document.getElementById("txtVendor").value;
-                console.log(vendorName); 
 
-                fetchVendorData();
+            function getVendorValue() {
+                var vendorValue = document.getElementById("txtVendor").value;
+                console.log(vendorValue); // You can handle this value as needed
+                return vendorValue;
+            }
+
+            async function addProduct() {
                 try {
+                    const vendorName = document.getElementById("txtVendor").value;
+                    
                     const vendorResponse = await $.ajax({
                         url: `/vendors/${vendorName}`,
                         method: 'GET'
                     });
+
                     const vendor_no = vendorResponse.vendor_no;
-                    console.log(vendor_no);
+
+                    const upc = $("#txtUPC").val();
 
                     const vendorsProductResponse = await $.ajax({
-                        url: `/vendorsProducts/${strUPC}/${vendor_no}`,
+                        url: `/vendorsProducts/${upc}/${vendor_no}`,
                         method: 'GET'
                     });
-                    console.log(vendorsProductResponse.cost);
                     const vendor_cost = vendorsProductResponse.cost;
 
                     const data = await $.ajax({
-                        url: `/products/${strUPC}`,
+                        url: `/products/${upc}`,
                         method: 'GET'
                     });
 
                     const strItemName = data.name;
 
                     Swal.fire({
-                        title: strItemName,
-                        input: 'number',
-                        inputLabel: 'Enter Item Count',
-                        inputAttributes: {
-                            min: 1,
-                            max: 999,
-                            step: 1   // only integers
-                        },
-                        showCancelButton: true,
-                        confirmButtonText: 'Submit',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        },
-                        inputValidator: (value) => {
-                            if (isNaN(value) || value == "") {
-                                return 'You need to enter a number!';
-                            }
-                            if (value < 0) {
-                                return 'Count cannot be negative!';
-                            }
-                            if (value % 1 !== 0) {
-                                return 'Count must be a whole number!';
-                            }
-                            if (value == 0) {
-                                return 'Count must be greater than 0!';
-                            }
-                            if (value > 999) {
-                                return 'Count must be less than 1000!';
-                            }
+                    title: strItemName,
+                    input: 'number',
+                    inputLabel: 'Enter Item Count',
+                    inputAttributes: {
+                        min: 1,
+                        max: 999,
+                        step: 1   // only integers
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    // otherwise Swal will set body height to auto and the background will look weird
+                    willOpen: () => {
+                        document.body.style.setProperty('height', '100%', 'important');
+                    },
+                    inputValidator: (value) => {
+                        if (isNaN(value) || value == "") {
+                            return 'You need to enter a number!';
                         }
+                        if (value < 0) {
+                            return 'Count cannot be negative!';
+                        }
+                        if (value % 1 !== 0) {
+                            return 'Count must be a whole number!';
+                        }
+                        if (value == 0) {
+                            return 'Count must be greater than 0!';
+                        }
+                        if (value > 999) {
+                            return 'Count must be less than 1000!';
+                        }
+                    }
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const numItemCount = result.value;
@@ -195,7 +205,7 @@
                             numTotalUnits += Number(numItemCount);
                             numTotalCost += numItemCost * numItemCount;
                             numTotalRetail += numItemRetail * numItemCount;
-                            arrUPCs.push(strUPC);
+                            arrUPCs.push(upc);
 
                             // Update the total units, cost, and retail in the UI
                             $("#spnTotalUnits").text(numTotalUnits);
@@ -208,7 +218,7 @@
                                         <div class="card p-2 mb-2">
                                             <div class="d-flex justify-content-between align-items-center cardHeader">
                                                 <div>
-                                                    <p class="fw-bold m-0">${strUPC}</p>
+                                                    <p class="fw-bold m-0">${upc}</p>
                                                     <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
                                                 </div>
                                                 <div>
@@ -232,190 +242,6 @@
                                         `);
                         }
                     });
-                    
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'An error occurred',
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
-                    });
-                }
-
-                /*
-                $.ajax({
-                    url: `/vendors/${vendorName}`,
-                    method: 'GET', 
-                    success: function (data, xhr) {
-                        const vendor_no = data.vendor_no
-                        console.log(vendor_no)
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Vendor not found or an error occurred',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            }
-                        });
-                        return;
-                    }
-                });
-
-                $.ajax({
-                    url: `/vendorsProducts/${strUPC, vendor_no}`,
-                    method: 'GET', 
-                    success: function (data, xhr) {
-                        console.log(data.cost)
-                        const vendor_cost = data.cost
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Vendor product not found or an error occurred',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            }
-                        });
-                        return;
-                    }
-                })
-                
-
-                $.ajax({
-                    url: `/products/${strUPC}`,
-                    method: 'GET',
-                    success: function (data, xhr) {
-                        // Append the product card to the UI
-                        console.log(data);
-
-                        const strItemName = data.name;
-
-                        Swal.fire({
-                            title: strItemName,
-                            input: 'number',
-                            inputLabel: 'Enter Item Count',
-                            inputAttributes: {
-                                min: 1,
-                                max: 999,
-                                step: 1   // only integers
-                            },
-                            showCancelButton: true,
-                            confirmButtonText: 'Submit',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            },
-                            inputValidator: (value) => {
-                                if (isNaN(value) || value == "") {
-                                    return 'You need to enter a number!';
-                                }
-                                if (value < 0) {
-                                    return 'Count cannot be negative!';
-                                }
-                                if (value % 1 !== 0) {
-                                    return 'Count must be a whole number!';
-                                }
-                                if (value == 0) {
-                                    return 'Count must be greater than 0!';
-                                }
-                                if (value > 999) {
-                                    return 'Count must be less than 1000!';
-                                }
-                            }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                const numItemCount = result.value;
-
-                                // TODO: Placeholder for item cost
-                                const numItemCost = vendor_cost;
-                                const numItemRetail = data.price;
-
-                                // Update the total units, cost, retail, and add UPC to array
-                                numTotalUnits += Number(numItemCount);
-                                numTotalCost += numItemCost * numItemCount;
-                                numTotalRetail += numItemRetail * numItemCount;
-                                arrUPCs.push(strUPC);
-
-                                // Update the total units, cost, and retail in the UI
-                                $("#spnTotalUnits").text(numTotalUnits);
-                                $("#spnTotalCost").text(numTotalCost.toFixed(2));
-                                $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
-                                $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
-
-                                // Add the product to the invoice
-                                $("#divItemsCard").append(`
-                                            <div class="card p-2 mb-2">
-                                                <div class="d-flex justify-content-between align-items-center cardHeader">
-                                                    <div>
-                                                        <p class="fw-bold m-0">${strUPC}</p>
-                                                        <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                                    </div>
-                                                    <div>
-                                                        <i class="fa-solid fa-chevron-down"></i>
-                                                    </div>
-                                                </div>
-                                                <div class="dropdownContent" style="display: none;">
-                                                    <div class="d-flex justify-content-between mt-2">
-                                                        <div>
-                                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                            <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
-                                                        </div>
-                                                        <div class="d-flex flex-column align-items-end">
-                                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            `);
-                            }
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Product not found or an error occurred',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            }
-                        });
-                    }
-                });
-                */
-            });
-
-            function getVendorValue() {
-                var vendorValue = document.getElementById("txtVendor").value;
-                console.log(vendorValue); // You can handle this value as needed
-                return vendorValue;
-            }
-
-            async function fetchVendorData() {
-                try {
-                    const vendorResponse = await $.ajax({
-                        url: `/vendors/${vendorName}`,
-                        method: 'GET'
-                    });
-                    const vendor_no = vendorResponse.vendor_no;
-                    console.log(vendor_no);
-
-                    const productResponse = await $.ajax({
-                        url: `/vendorsProducts/${strUPC}/${vendor_no}`,
-                        method: 'GET'
-                    });
-                    console.log(productResponse.cost);
-                    const vendor_cost = productResponse.cost;
-                    const product
 
 
                     
@@ -429,7 +255,7 @@
                         }
                     });
                 }
-            }
+            };
 
             $("#btnSave").on("click", function () {
                 // Get the vendor, invoice number, date, and vendor total from the inputs
