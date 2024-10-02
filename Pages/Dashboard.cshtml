@@ -69,95 +69,127 @@
             <!-- Invoices will be dynamically inserted here -->
         </div>
     </div>
+</body>
 
     <!-- jQuery and AJAX script -->
+    @section Scripts{
     <script>
-        $(document).ready(function() {     
+    $(document).ready(function() {     
 
-            // Fetch invoices when "Search" button is clicked
-            $('#btnSearch').on('click', function() {
-                const vendorId = $('#vendor').val();
-                const startDate = $('#start-date').val();
-                const endDate = $('#end-date').val();
-                const invoiceNumber = $('#invoice-number').val();
+        // Fetch invoices when "Search" button is clicked
+        $('#btnSearch').on('click', function() {
+            const vendorId = $('#vendor').val();
+            const startDate = $('#start-date').val();
+            const endDate = $('#end-date').val();
+            const invoiceNumber = $('#invoice-number').val();
 
-                //need to add error checking
+            // Error checking for required fields: start date and end date
+            if (startDate === "" || endDate === "") {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Please select both a start and end date',
+                });
+                return;
+            }
 
-                // Perform an AJAX request to fetch filtered invoices
-                //need to fix this call
-                $.ajax({
-                    url: `/invoices?vendorId=${vendorId}&startDate=${startDate}&endDate=${endDate}&invoiceNumber=${invoiceNumber}`,
-                    method: 'GET',
-                    success: function(invoices) {
-                        // Clear the previous invoices
-                        $('#invoiceAccordion').empty();
+            // Check if the start date is later than the end date
+            if (new Date(startDate) > new Date(endDate)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Start date cannot be later than end date',
+                });
+                return;
+            }
 
-                        // Loop through invoices and generate HTML
-                        invoices.forEach((invoice, index) => {
-                            let invoiceHTML = `
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="heading${index}">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="true" aria-controls="collapse${index}">
-                                            Invoice ${invoice.invoiceNumber} - ${invoice.vendorName}
-                                        </button>
-                                    </h2>
-                                    <div id="collapse${index}" class="accordion-collapse collapse show" aria-labelledby="heading${index}" data-bs-parent="#invoiceAccordion">
-                                        <div class="accordion-body">
-                                            <div class="d-flex justify-content-between">
-                                                <div>
-                                                    <p>Units: ${invoice.units}</p>
-                                                    <p>Cost: $${invoice.cost.toFixed(2)}</p>
-                                                    <p>Retail: $${invoice.retail.toFixed(2)}</p>
-                                                    <p>Gross Margin: ${invoice.grossMargin.toFixed(2)}%</p>
-                                                </div>
-                                                <div class="d-flex">
-                                                    <button id="btnEdit" class="btn btn-secondary me-2">Edit</button>
-                                                    <button id="btnPrint" class="btn btn-secondary">Print</button>
-                                                </div>
+            // Perform an AJAX request to fetch filtered invoices
+            $.ajax({
+                url: `/invoices?vendorId=${vendorId}&startDate=${startDate}&endDate=${endDate}&invoiceNumber=${invoiceNumber}`,
+                method: 'GET',
+                success: function(invoices) {
+                    // Clear the previous invoices
+                    $('#invoiceAccordion').empty();
+
+                    if (invoices.length === 0) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'No Invoices',
+                            text: 'No invoices found for the selected criteria',
+                        });
+                        return;
+                    }
+
+                    // Loop through invoices and generate HTML
+                    invoices.forEach((invoice, index) => {
+                        let invoiceHTML = `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading${index}">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="true" aria-controls="collapse${index}">
+                                        Invoice ${invoice.invoiceNumber} - ${invoice.vendorName}
+                                    </button>
+                                </h2>
+                                <div id="collapse${index}" class="accordion-collapse collapse show" aria-labelledby="heading${index}" data-bs-parent="#invoiceAccordion">
+                                    <div class="accordion-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <p>Units: ${invoice.units}</p>
+                                                <p>Cost: $${invoice.cost.toFixed(2)}</p>
+                                                <p>Retail: $${invoice.retail.toFixed(2)}</p>
+                                                <p>Gross Margin: ${invoice.grossMargin.toFixed(2)}%</p>
                                             </div>
-                                            <hr>
-                                            <div class="accordion" id="itemAccordion${index}">
-                                                ${generateItemsHTML(invoice.items, index)}
+                                            <div class="d-flex">
+                                                <button id="btnEdit" class="btn btn-secondary me-2">Edit</button>
+                                                <button id="btnPrint" class="btn btn-secondary">Print</button>
                                             </div>
+                                        </div>
+                                        <hr>
+                                        <div class="accordion" id="itemAccordion${index}">
+                                            ${generateItemsHTML(invoice.items, index)}
                                         </div>
                                     </div>
                                 </div>
-                            `;
-                            // Append the invoice HTML to the accordion
-                            $('#invoiceAccordion').append(invoiceHTML);
-                        });
-                    },
-                    error: function(error) {
-                        console.error("Error fetching invoices:", error);
-                    }
-                });
+                            </div>
+                        `;
+                        // Append the invoice HTML to the accordion
+                        $('#invoiceAccordion').append(invoiceHTML);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while fetching invoices',
+                    });
+                }
             });
+        });
 
-            // Function to generate items HTML for each invoice
-            function generateItemsHTML(items, invoiceIndex) {
-                let itemsHTML = '';
-                items.forEach((item, index) => {
-                    itemsHTML += `
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="itemHeading${invoiceIndex}${index}">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#itemCollapse${invoiceIndex}${index}" aria-expanded="true" aria-controls="itemCollapse${invoiceIndex}${index}">
-                                    ${item.upc} - ${item.name} - ${item.quantity}
-                                </button>
-                            </h2>
-                            <div id="itemCollapse${invoiceIndex}${index}" class="accordion-collapse collapse show" aria-labelledby="itemHeading${invoiceIndex}${index}" data-bs-parent="#itemAccordion${invoiceIndex}">
-                                <div class="accordion-body">
-                                    <p>Cost: $${item.cost.toFixed(2)}</p>
-                                    <p>Total Cost: $${item.totalCost.toFixed(2)}</p>
-                                    <p>Gross Margin: ${item.grossMargin.toFixed(2)}%</p>
-                                    <p>Retail: $${item.retail.toFixed(2)}</p>
-                                    <p>Total Retail: $${item.totalRetail.toFixed(2)}</p>
-                                </div>
+        // Function to generate items HTML for each invoice
+        function generateItemsHTML(items, invoiceIndex) {
+            let itemsHTML = '';
+            items.forEach((item, index) => {
+                itemsHTML += `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="itemHeading${invoiceIndex}${index}">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#itemCollapse${invoiceIndex}${index}" aria-expanded="true" aria-controls="itemCollapse${invoiceIndex}${index}">
+                                ${item.upc} - ${item.name} - ${item.quantity}
+                            </button>
+                        </h2>
+                        <div id="itemCollapse${invoiceIndex}${index}" class="accordion-collapse collapse show" aria-labelledby="itemHeading${invoiceIndex}${index}" data-bs-parent="#itemAccordion${invoiceIndex}">
+                            <div class="accordion-body">
+                                <p>Cost: $${item.cost.toFixed(2)}</p>
+                                <p>Total Cost: $${item.totalCost.toFixed(2)}</p>
+                                <p>Gross Margin: ${item.grossMargin.toFixed(2)}%</p>
+                                <p>Retail: $${item.retail.toFixed(2)}</p>
+                                <p>Total Retail: $${item.totalRetail.toFixed(2)}</p>
                             </div>
                         </div>
-                    `;
-                });
-                return itemsHTML;
-            }
-        });
+                    </div>
+                `;
+            });
+            return itemsHTML;
+        }
+    });
     </script>
-</body>
+}
