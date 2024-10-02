@@ -74,7 +74,11 @@
     <!-- jQuery and AJAX script -->
     @section Scripts{
     <script>
-    $(document).ready(function() {     
+    $(document).ready(function() {
+
+        $("#btnCreateInvoice").click(function () {
+            window.location.href = "/invoice";
+        });     
 
         // Fetch invoices when "Search" button is clicked
         $('#btnSearch').on('click', function() {
