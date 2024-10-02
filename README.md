@@ -10,3 +10,49 @@
     - ???
 4. `dotnet run` to build and run the project
 5. `dotnet test` in another terminal to run the tests
+
+## Program.cs 
+1. Prerequisites
+
+    Microsoft.Data.SqlClient for connecting to SQL Server.
+    Microsoft.EntityFrameworkCore for ORM mapping to the database.
+    Swagger is included for API documentation and testing.
+
+2. Database Configuration
+
+    The database connection is set up using Entity Framework Core with SQL Server. The connection string is retrieved from the configuration.
+    In appsettings.json, ensure you have your connection string for SQL Server:
+
+3. Swagger Configuration
+
+    Swagger is integrated into the project for API documentation and testing. The Swagger UI will be available in the development environment.
+    You can access Swagger UI at /swagger when running the app in development mode.
+
+
+4. Endpoints
+
+    GET /Employees
+        Retrieves a list of all employees from the database.
+
+    GET /products/{upc}
+        Fetches a product based on its UPC (Universal Product Code). Returns a 404 Not Found response if the product doesn't exist.
+
+    GET /VendorNames
+        Retrieves a list of vendor names.
+
+    GET /Products
+        Fetches all the products available in the database.
+
+5. Additional Configurations
+
+    Static Files: This allows serving static files such as HTML, CSS, or JavaScript from the wwwroot directory.
+    Routing & Authorization: The app uses Razor Pages for views and basic routing. Authentication is handled separately if needed.
+
+    Running the Application
+
+6. To run the application:
+
+    Ensure you have SQL Server installed and configured.
+    Update the appsettings.json file with the correct connection string.
+    Run the application using dotnet run or from your IDE (e.g., Visual Studio).
+    Access Swagger at https://localhost:<port>/swagger to view and test the API endpoints.
