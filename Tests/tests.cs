@@ -179,6 +179,7 @@ public class InvoiceTests : PageTest
     [Test]
     public async Task InvalidUPC()
     {
+        await Page.GetByLabel("Vendor", new() { Exact = true }).FillAsync("M&M Distributions");
         await Page.GetByPlaceholder("UPC").FillAsync("123456789012");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Add Product" }).ClickAsync();
         await Expect(Page.GetByText("Product not found or an error occurred")).ToBeVisibleAsync();
@@ -188,6 +189,7 @@ public class InvoiceTests : PageTest
     [Test]
     public async Task ValidUPC()
     {
+        await Page.GetByLabel("Vendor", new() { Exact = true }).FillAsync("M&M Distributions");
         await Page.GetByPlaceholder("UPC").FillAsync("013000002523");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Add Product" }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "HEINZ Kethchup" })).ToBeVisibleAsync();
@@ -228,6 +230,7 @@ public class InvoiceTests : PageTest
     [Test]
     public async Task DuplicateUPC()
     {
+        await Page.GetByLabel("Vendor", new() { Exact = true }).FillAsync("M&M Distributions");
         await Page.GetByPlaceholder("UPC").FillAsync("013000002523");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Add Product" }).ClickAsync();
         await Page.GetByLabel("Enter Item Count").FillAsync("10");
@@ -241,6 +244,7 @@ public class InvoiceTests : PageTest
     [Test]
     public async Task CheckTotals()
     {
+        await Page.GetByLabel("Vendor", new() { Exact = true }).FillAsync("M&M Distributions");
         await Page.GetByPlaceholder("UPC").FillAsync("013000002523");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Add Product" }).ClickAsync();
         await Page.GetByLabel("Enter Item Count").FillAsync("10");
