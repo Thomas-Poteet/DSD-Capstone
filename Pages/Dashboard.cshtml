@@ -30,6 +30,7 @@
             </div>
         </div>
     </nav>
+@Html.AntiForgeryToken()
 
     <!-- Search form -->
     <div class="container mt-3">
@@ -168,7 +169,7 @@
                 }
             });
         });
-
+      
         // Function to generate items HTML for each invoice
         function generateItemsHTML(items, invoiceIndex) {
             let itemsHTML = '';
@@ -195,5 +196,38 @@
             return itemsHTML;
         }
     });
+
+        $("#btnLogout").click(function () {
+            // Calls the OnPostLogoutAsync method in Dashboard.cshtml.cs
+            $.ajax({
+                url: '/Dashboard?handler=Logout',
+                method: 'POST',
+                headers: {
+                    RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        window.location.href = "/Login";
+                    } else {
+                        Swal.fire({
+                            heightAuto: false,
+                            icon: 'error',
+                            title: 'Failed to destroy session',
+                            showConfirmButton: false,
+                            timer: 1000
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Error destroying session',
+                        showConfirmButton: false,
+                        timer: 1000
+                    });
+                }
+            });
+        });
     </script>
 }

@@ -1,5 +1,8 @@
 @page
 @model InvoiceModel
+@{
+    ViewData["Title"] = "Create Invoice";
+}
 
 <head>
     <style>
@@ -95,13 +98,25 @@
             $("#btnAddProduct").on("click", function () {
                 // Get the UPC from the input
                 const strUPC = $("#txtUPC").val();
+                var vendorValue = document.getElementById("txtVendor").value;
 
                 // check if the UPC is empty
                 if (strUPC === "") {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Please enter a UPC',
+                        text: 'Please enter a UPC'
+                    });
+                    return;
+                }
+
+                //check if vendor has been selected
+                if (vendorValue === "") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please select a vendor',
                         // otherwise Swal will set body height to auto and the background will look weird
                         willOpen: () => {
                             document.body.style.setProperty('height', '100%', 'important');
@@ -113,122 +128,141 @@
                 // Check if the UPC is already on the invoice by seeing if its in arrUPCs
                 if (arrUPCs.includes(strUPC)) {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Cannot add duplicate item to invoice',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Cannot add duplicate item to invoice'
                     });
                     $("#txtUPC").val("");
                     return;
                 }
+                //call the add product function to fetch product data and add it to invoice page
+                addProduct();
+                // empty UPC text box
+            });
 
-                $.ajax({
-                    url: `/products/${strUPC}`,
-                    method: 'GET',
-                    success: function (data, xhr) {
-                        // Append the product card to the UI
-                        console.log(data);
+            async function addProduct() {
+                try {
+                    const vendorName = document.getElementById("txtVendor").value;
+                    
+                    const vendorResponse = await $.ajax({
+                        url: `/vendors/${vendorName}`,
+                        method: 'GET'
+                    });
 
-                        const strItemName = data.name;
+                    const vendor_no = vendorResponse.vendor_no;
 
-                        Swal.fire({
-                            title: strItemName,
-                            input: 'number',
-                            inputLabel: 'Enter Item Count',
-                            inputAttributes: {
-                                min: 1,
-                                max: 999,
-                                step: 1   // only integers
-                            },
-                            showCancelButton: true,
-                            confirmButtonText: 'Submit',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            },
-                            inputValidator: (value) => {
-                                if (isNaN(value) || value == "") {
-                                    return 'You need to enter a number!';
-                                }
-                                if (value < 0) {
-                                    return 'Count cannot be negative!';
-                                }
-                                if (value % 1 !== 0) {
-                                    return 'Count must be a whole number!';
-                                }
-                                if (value == 0) {
-                                    return 'Count must be greater than 0!';
-                                }
-                                if (value > 999) {
-                                    return 'Count must be less than 1000!';
-                                }
-                            }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                const numItemCount = result.value;
+                    const upc = $("#txtUPC").val();
 
-                                // TODO: Placeholder for item cost
-                                const numItemCost = (Math.floor(Math.random() * (2000 - 25 + 1)) + 25) / 100
-                                const numItemRetail = data.price;
+                    const vendorsProductResponse = await $.ajax({
+                        url: `/vendorsProducts/${upc}/${vendor_no}`,
+                        method: 'GET'
+                    });
+                    const vendor_cost = vendorsProductResponse.cost;
 
-                                // Update the total units, cost, retail, and add UPC to array
-                                numTotalUnits += Number(numItemCount);
-                                numTotalCost += numItemCost * numItemCount;
-                                numTotalRetail += numItemRetail * numItemCount;
-                                arrUPCs.push(strUPC);
+                    const data = await $.ajax({
+                        url: `/products/${upc}`,
+                        method: 'GET'
+                    });
 
-                                // Update the total units, cost, and retail in the UI
-                                $("#spnTotalUnits").text(numTotalUnits);
-                                $("#spnTotalCost").text(numTotalCost.toFixed(2));
-                                $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
-                                $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+                    const strItemName = data.name;
 
-                                // Add the product to the invoice
-                                $("#divItemsCard").append(`
-                                            <div class="card p-2 mb-2">
-                                                <div class="d-flex justify-content-between align-items-center cardHeader">
-                                                    <div>
-                                                        <p class="fw-bold m-0">${strUPC}</p>
-                                                        <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                                    </div>
-                                                    <div>
-                                                        <i class="fa-solid fa-chevron-down"></i>
-                                                    </div>
+                    Swal.fire({
+                    title: strItemName,
+                    input: 'number',
+                    inputLabel: 'Enter Item Count',
+                    inputAttributes: {
+                        min: 1,
+                        max: 999,
+                        step: 1   // only integers
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    // otherwise Swal will set body height to auto and the background will look weird
+                    willOpen: () => {
+                        document.body.style.setProperty('height', '100%', 'important');
+                    },
+                    inputValidator: (value) => {
+                        if (isNaN(value) || value == "") {
+                            return 'You need to enter a number!';
+                        }
+                        if (value < 0) {
+                            return 'Count cannot be negative!';
+                        }
+                        if (value % 1 !== 0) {
+                            return 'Count must be a whole number!';
+                        }
+                        if (value == 0) {
+                            return 'Count must be greater than 0!';
+                        }
+                        if (value > 999) {
+                            return 'Count must be less than 1000!';
+                        }
+                    }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const numItemCount = result.value;
+
+                            // TODO: Placeholder for item cost
+                            const numItemCost = vendor_cost;
+                            const numItemRetail = data.price;
+
+                            // Update the total units, cost, retail, and add UPC to array
+                            numTotalUnits += Number(numItemCount);
+                            numTotalCost += numItemCost * numItemCount;
+                            numTotalRetail += numItemRetail * numItemCount;
+                            arrUPCs.push(upc);
+
+                            // Update the total units, cost, and retail in the UI
+                            $("#spnTotalUnits").text(numTotalUnits);
+                            $("#spnTotalCost").text(numTotalCost.toFixed(2));
+                            $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
+                            $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+
+                            // Add the product to the invoice
+                            $("#divItemsCard").append(`
+                                        <div class="card p-2 mb-2">
+                                            <div class="d-flex justify-content-between align-items-center cardHeader">
+                                                <div>
+                                                    <p class="fw-bold m-0">${upc}</p>
+                                                    <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
                                                 </div>
-                                                <div class="dropdownContent" style="display: none;">
-                                                    <div class="d-flex justify-content-between mt-2">
-                                                        <div>
-                                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                            <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
-                                                        </div>
-                                                        <div class="d-flex flex-column align-items-end">
-                                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                        </div>
+                                                <div>
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                </div>
+                                            </div>
+                                            <div class="dropdownContent" style="display: none;">
+                                                <div class="d-flex justify-content-between mt-2">
+                                                    <div>
+                                                        <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                                        <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                                        <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                    </div>
+                                                    <div class="d-flex flex-column align-items-end">
+                                                        <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                                        <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            `);
-                            }
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Product not found or an error occurred',
-                            // otherwise Swal will set body height to auto and the background will look weird
-                            willOpen: () => {
-                                document.body.style.setProperty('height', '100%', 'important');
-                            }
-                        });
-                    }
-                });
-            });
+
+                                        </div>
+                                        `);
+                            //clear txtUPC value
+                            $("#txtUPC").val("");
+                        }
+                    });
+                    
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Product not found or an error occurred',
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                }
+            };
 
             $("#btnSave").on("click", function () {
                 // Get the vendor, invoice number, date, and vendor total from the inputs
@@ -240,13 +274,10 @@
                 // If any of the inputs are empty, show an error message and return
                 if (strVendor === "" || strInvoiceNumber === "" || strDate === "" || numVendorTotal === "") {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Please fill out all fields',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Please fill out all fields'
                     });
                     return;
                 }
@@ -254,13 +285,10 @@
                 // If there are no items in the invoice, show an error message and return
                 if (numTotalUnits === 0) {
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: 'Please add at least one item to the invoice',
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: 'Please add at least one item to the invoice'
                     });
                     return;
                 }
@@ -275,26 +303,20 @@
                         strMessage = `Vendor total is greater than invoice total by $${numBalance}`;
                     }
                     Swal.fire({
+                        heightAuto: false,
                         icon: 'error',
                         title: 'Error',
-                        text: strMessage,
-                        // otherwise Swal will set body height to auto and the background will look weird
-                        willOpen: () => {
-                            document.body.style.setProperty('height', '100%', 'important');
-                        }
+                        text: strMessage
                     });
                     return;
                 }
 
                 // TODO: Placeholder for saving the invoice to the database
                 Swal.fire({
+                    heightAuto: false,
                     icon: 'success',
                     title: 'Success',
-                    text: 'Invoice saved successfully',
-                    // otherwise Swal will set body height to auto and the background will look weird
-                    willOpen: () => {
-                        document.body.style.setProperty('height', '100%', 'important');
-                    }
+                    text: 'Invoice saved successfully'
                 });
             });
 
