@@ -128,6 +128,25 @@ app.MapGet("/Products", async (MyDbContext dbContext) => {
     return Results.Ok(conn);
 });
 
+app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, char InvoiceID) => {
+    var conn = await dbContext.Invoices.FindAsync(InvoiceID);
+    if (conn == null)
+    {
+        return Results.NotFound("Invoice not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            InvoiceID = conn.InvoiceID,
+            Date = conn.Date,
+            emp_no = conn.emp_no,
+            vendor_no = conn.vendor_no
+
+        });
+    }
+})
+.WithName("GetInvoiceByID");
+
 
 //Post to create a new product
 app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
@@ -162,6 +181,14 @@ app.MapPost("/Employees", async (Employee employee, MyDbContext dbContext) => {
     return Results.Created($"/entities/{employee.emp_no}", employee);
 })
 .WithName("CreateEmployee");
+
+//Post to create a new invoice
+app.MapPost("/Invoices", async (Invoice invoice, MyDbContext dbContext) => {
+    dbContext.Invoices.Add(invoice);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/entities/{invoice.InvoiceID}", invoice);
+})
+.WithName("CreateInvoice");
 //.WithOpenApi();
 
 
