@@ -97,6 +97,9 @@
                     icon: 'error',
                     title: 'Error',
                     text: 'Please select both a start and end date',
+                    willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
                 });
                 return;
             }
@@ -107,6 +110,9 @@
                     icon: 'error',
                     title: 'Error',
                     text: 'Start date cannot be later than end date',
+                    willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
                 });
                 return;
             }
@@ -124,6 +130,9 @@
                             icon: 'info',
                             title: 'No Invoices',
                             text: 'No invoices found for the selected criteria',
+                            willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
                         });
                         return;
                     }
@@ -168,6 +177,9 @@
                         icon: 'error',
                         title: 'Error',
                         text: 'An error occurred while fetching invoices',
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
                     });
                 }
             });
