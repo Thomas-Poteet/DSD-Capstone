@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +13,16 @@ namespace DSD_Capstone.Pages;
 [Authorize]
 public class DashboardModel : PageModel
 {
-    private readonly MyDbContext vendors;
+    private readonly MyDbContext db;
     public DashboardModel(MyDbContext context)
         {
-            vendors = context;
+            db = context;
         }
     public List<string> Vendors { get; set; } = new List<string>();
     public async Task OnGetAsync()
     {
         // Query the database to fill the Vendors list
-        Vendors = await vendors.Vendors
+        Vendors = await db.Vendors
             .Select(v => v.name)
             .ToListAsync();
     }
