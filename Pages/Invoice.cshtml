@@ -164,6 +164,14 @@
                     });
 
                     const strItemName = data.name;
+                    const dept_no = data.department;
+
+                    const departmentResponse = await $.ajax({
+                        url: `/departments/${dept_no}`,
+                        method: 'GET'
+                    });
+
+                    const dept_name = departmentResponse.dept_name;
 
                     Swal.fire({
                         heightAuto: false,
@@ -198,7 +206,7 @@
                         if (result.isConfirmed) {
                             const numItemCount = parseInt(result.value);
 
-                            // TODO: Placeholder for item cost
+                            // Placeholder for item cost
                             const numItemCost = vendor_cost;
                             const numItemRetail = data.price;
 
@@ -248,9 +256,10 @@
                                             <div>
                                                 <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
                                                 <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                <p class="m-0">Gross Margin: ${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                             </div>
                                             <div class="d-flex flex-column align-items-end">
+                                                <p class="m-0">Department: ${dept_name}</p>
                                                 <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                 <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
                                             </div>

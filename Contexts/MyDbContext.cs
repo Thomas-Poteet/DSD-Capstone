@@ -16,6 +16,10 @@ public class MyDbContext : DbContext
         modelBuilder.Entity<VendorProduct>()
             .HasKey(vp => new { vp.vendor_no, vp.upc });  // Composite primary key
 
+        //sets the Department entity's primary key as composite
+        modelBuilder.Entity<Department>()
+            .HasKey(d => new { d.dept_no, d.dept_sub });
+
         base.OnModelCreating(modelBuilder);
     }
     public DbSet<Department> Departments { get; set; }
