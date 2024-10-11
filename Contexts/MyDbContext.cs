@@ -4,8 +4,8 @@ public class MyDbContext : DbContext
 {
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 
-    public DbSet<Employee> Employees { get; set; }  
-
+    public DbSet<Employee> Employees { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
     public DbSet<Product> Products { get; set; }
 
     public DbSet<Vendor> Vendors { get; set; }
