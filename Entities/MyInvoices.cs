@@ -7,7 +7,7 @@ public class Invoice
     public required short emp_no { get; set; }
     public required int vendor_no { get; set; }
     public required DateOnly Date { get; set; }
-    // public required decimal VendorTotal { get; set; }
+    public required decimal vendor_total { get; set; }
 
     // define a foreign key relationship
     public required List<InvoiceProduct> InvoiceProducts { get; set; }
