@@ -20,6 +20,7 @@
 
 <body id="invoicePage">
     <form class="h-100 mx-auto" style="max-width: 500px;">
+        @Html.AntiForgeryToken()
         <div class="d-flex flex-column justify-content-between h-100 py-2">
             @* Top Section *@
             <div>
@@ -47,7 +48,7 @@
                         <label for="txtDate">Date</label>
                         <input type="date" id="txtDate" class="form-control rounded-3 py-0">
                         <label for="txtVendorTotal" class="mt-1">Vendor Total</label>
-                        <input type="number" id="txtVendorTotal" class="form-control rounded-3 py-0">
+                        <input type="number" step="0.01" id="txtVendorTotal" class="form-control rounded-3 py-0">
                     </div>
                 </div>
                 @* Card where UPC is entered. Will pop up count card after enter or Add Product button is pressed *@
@@ -239,21 +240,21 @@
 
                             // Add the product to the invoice
                             $("#divItemsCard").append(`
-                                <div class="card p-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center cardHeader">
-                                        <div>
-                                            <p class="fw-bold m-0">${upc}</p>
-                                            <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                        </div>
-                                        <div class="d-flex flex-column justify-content-between h-100">
-                                            <button type="button" class="btnEdit btn p-0 shadow-none"><i
-                                                    class="fa-regular fa-pen-to-square"></i></button>
-                                            <i class="chevron fa-solid fa-chevron-down"></i>
-                                        </div>
-                                    </div>
-                                    <div class="dropdownContent" style="display: none;">
-                                        <div class="d-flex justify-content-between mt-2">
+                                    <div class="card p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center cardHeader">
                                             <div>
+                                                <p class="fw-bold m-0">${upc}</p>
+                                                <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
+                                            </div>
+                                            <div class="d-flex flex-column justify-content-between h-100">
+                                                <button type="button" class="btnEdit btn p-0 shadow-none"><i
+                                                        class="fa-regular fa-pen-to-square"></i></button>
+                                                <i class="chevron fa-solid fa-chevron-down"></i>
+                                            </div>
+                                        </div>
+                                        <div class="dropdownContent" style="display: none;">
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <div>
                                                 <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
                                                 <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
                                                 <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
@@ -265,8 +266,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            `);
+                                `);
                             //clear txtUPC value
                             $("#txtUPC").val("");
                         }
@@ -288,6 +288,7 @@
                 const strInvoiceNumber = $("#txtInvoiceNumber").val();
                 const strDate = $("#txtDate").val();
                 const numVendorTotal = $("#txtVendorTotal").val();
+                const numBalance = parseFloat($("#spnBalance").text());
 
                 // If any of the inputs are empty, show an error message and return
                 if (strVendor === "" || strInvoiceNumber === "" || strDate === "" || numVendorTotal === "") {
@@ -311,14 +312,11 @@
                     return;
                 }
 
-                // If vendor total does not equal invoice total, show an error message and return
-                if (numVendorTotal !== numTotalCost.toFixed(2)) {
-                    if (numVendorTotal < numTotalCost.toFixed(2)) {
-                        numBalance = (numTotalCost.toFixed(2) - numVendorTotal).toFixed(2);
-                        strMessage = `Vendor total is less than Invoice total by $${numBalance}`;
+                if (numBalance != 0.00) {
+                    if (parseFloat(numVendorTotal).toFixed(2) < numTotalCost.toFixed(2)) {
+                        strMessage = `Vendor total is less than Invoice total by $${Math.abs(numBalance).toFixed(2)}`;
                     } else {
-                        numBalance = (numVendorTotal - numTotalCost.toFixed(2)).toFixed(2);
-                        strMessage = `Vendor total is greater than Invoice total by $${numBalance}`;
+                        strMessage = `Vendor total is greater than Invoice total by $${numBalance.toFixed(2)}`;
                     }
                     Swal.fire({
                         heightAuto: false,
@@ -330,17 +328,14 @@
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // TODO: Placeholder for saving the invoice to the database
-                            Swal.fire({
-                                heightAuto: false,
-                                icon: 'success',
-                                title: 'Success',
-                                text: 'Invoice saved successfully'
-                            });
+                            saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal);
                         } else if (result.dismiss === Swal.DismissReason.cancel) {
                             return;
                         }
                     });
+                }
+                else {
+                    saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal);
                 }
             });
 
@@ -487,7 +482,8 @@
                     }
                 }
                 else {
-                    $("#spnBalance").text(($(this).val() - numTotalCost).toFixed(2));
+                    const numBalance = $(this).val() - numTotalCost;
+                    $("#spnBalance").text(Math.abs(numBalance) < 0.009 ? "0.00" : numBalance.toFixed(2));
                 }
             });
 
@@ -528,6 +524,49 @@
                     const day = String(today.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
                 }
+
+            function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal) {
+                $.ajax({
+                    url: '/Invoice',
+                    method: 'POST',
+                    data: {
+                        InvoiceID: strInvoiceNumber,
+                        VendorName: strVendor,
+                        Date: strDate,
+                        VendorTotal: parseFloat(numVendorTotal),
+                        UPCs: arrUPCs,
+                        Counts: arrCounts
+                    },
+                    headers: {
+                        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                heightAuto: false,
+                                icon: 'success',
+                                title: 'Success',
+                                text: 'Invoice saved successfully'
+                            });
+                        } else {
+                            Swal.fire({
+                                heightAuto: false,
+                                icon: 'error',
+                                title: 'Error saving invoice',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            heightAuto: false,
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error saving invoice'
+                        });
+                    }
+                });
+            }
         });
 
     </script>
