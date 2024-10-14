@@ -106,11 +106,27 @@ app.MapGet("/products/{upc}", async (MyDbContext dbContext, string upc) => {
         {
             UPC = conn.upc,
             Name = conn.description,
-            Price = conn.normal_price
+            Price = conn.normal_price,
+            Department = conn.department
         });
     }
 })
 .WithName("GetProductByUPC");
+
+
+app.MapGet("/departments/{dept_no}", async (MyDbContext dbContext, short dept_no) => {
+    var conn = await dbContext.Departments.FirstOrDefaultAsync(d => d.dept_no == dept_no);
+    if (conn == null)
+    {
+        return Results.NotFound("Department not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            dept_name = conn.dept_name
+        });
+    }
+});
 
 
 //Get call to fetch all vendor names from vendor table to fill vendor list on invoices

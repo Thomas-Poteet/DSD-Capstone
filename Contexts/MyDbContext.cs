@@ -33,6 +33,10 @@ public class MyDbContext : DbContext
         modelBuilder.Entity<Invoice>()
             .Property(i => i.vendor_total)
             .HasColumnType("money");
+            
+        //sets the Department entity's primary key as composite
+        modelBuilder.Entity<Department>()
+            .HasKey(d => new { d.dept_no, d.dept_sub });
 
         base.OnModelCreating(modelBuilder);
     }
