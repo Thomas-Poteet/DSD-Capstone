@@ -163,6 +163,29 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
 })
 .WithName("GetInvoiceByID");
 
+// Get Invoices by vendor_no
+app.MapGet("/InvoicesByVendor/{vendor_no}", async (MyDbContext dbContext, int vendor_no) => {
+    var invoices = await dbContext.Invoices
+        .Where(i => i.vendor_no == vendor_no)
+        .ToListAsync();
+        
+    if (invoices == null )
+    {
+        return Results.NotFound("Invoices not found");
+    }
+
+    // Return a list of invoices
+    return Results.Ok(invoices.Select(conn => new
+    {
+        InvoiceID = conn.InvoiceID,
+        Date = conn.Date,
+        emp_no = conn.emp_no,
+        vendor_no = conn.vendor_no,
+        vendor_total = conn.vendor_total
+    }));
+})
+.WithName("GetInvoicesByVendor");
+
 
 //Post to create a new product
 app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {

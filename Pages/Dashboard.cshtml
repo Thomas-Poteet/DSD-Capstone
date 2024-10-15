@@ -18,6 +18,7 @@
         }
 
     </style>
+    <link rel="stylesheet" href="~/css/datatables.min.css" />
 </head>
 
 <body>
@@ -89,8 +90,27 @@
 </body>
 
 @section Scripts{
+    <script src="~/js/datatables.min.js"></script>
     <script>
     $(document).ready(function() {
+        $('#invoiceTable').DataTable({
+                dom: 'Bfrtip',
+                // Remove buttons like print, copy, etc.
+                buttons: [], // No buttons, or you can remove this entire line
+
+                // Disable the search functionality
+                searching: false,
+
+                // Keep other configurations (if necessary)
+                fixedHeader: true,
+                fixedColumns: {
+                    leftColumns: 1
+                },
+                responsive: true,
+                scrollY: 400,
+                scrollCollapse: true,
+                stateSave: true
+            });
 
         $("#btnCreateInvoice").click(function () {
             window.location.href = "/invoice";
@@ -98,10 +118,10 @@
 
         // Fetch invoices when "Search" button is clicked
         $('#btnSearch').on('click', function() {
-    const vendorId = $('#txtVendor').val();
-    const startDate = $('#start-date').val();
-    const endDate = $('#end-date').val();
-    const InvoiceID = $('#invoice-number').val();
+            const vendorId = $('#txtVendor').val();
+            const startDate = $('#start-date').val();
+            const endDate = $('#end-date').val();
+            const InvoiceID = $('#invoice-number').val();
 
     // Check if the start date is later than the end date
     if (new Date(startDate) > new Date(endDate)) {
@@ -115,9 +135,10 @@
         });
         return;
     }
-
-    // Perform an AJAX request to fetch filtered invoices
-    $.ajax({
+        // Perform an AJAX request to fetch invoice by ID
+    if(InvoiceID){
+        console.log(InvoiceID);
+        $.ajax({
         url: `/Invoices/${InvoiceID}`, // Dynamic URL with InvoiceID
         method: 'GET',
         success: function(invoices) {
@@ -172,6 +193,83 @@
             });
         }
     });
+    } else {
+        const vendor = $.ajax({
+            url: `/vendors/${vendorId}`,
+            method: 'GET',
+            success: function(vendor) {
+            const vendor_no = vendor.vendor_no;
+            console.log(vendor);
+            // Perform an AJAX request to fetch invoices by Vendor
+        $.ajax({
+            url: `/InvoicesByVendor/${vendor_no}`,
+            method: 'GET',
+            success: function(invoices) {
+                // Clear the previous invoice table
+                $('#invoiceTable tbody').empty();
+
+                if (invoices.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Invoices',
+                        text: 'No invoices found for that vendor',
+                        willOpen: () => {
+                            document.body.style.setProperty('height', '100%', 'important');
+                        }
+                    });
+                    return;
+                }
+
+                console.log(invoices);
+
+                // Check if invoices is an array, if not, wrap it as an array
+                if (!Array.isArray(invoices)) {
+                    invoices = [invoices];
+                }
+
+                invoices.forEach((invoice) => {
+                    let invoiceRow = `
+                        <tr>
+                            <td>${invoice.invoiceID}</td>
+                            <td>${invoice.vendor_no}</td>
+                            <td>${invoice.vendor_total}</td>
+                            <td>${invoice.emp_no}</td>
+                            <td>${invoice.date}</td>
+                            <td>
+                                <button id="btnEditInvoice" class="btn btn-secondary">Edit</button>
+                                <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
+                            </td>
+                        </tr>
+                    `;
+                    // Append the invoice row to the table
+                    $('#invoiceTable tbody').append(invoiceRow);
+                });
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while fetching invoices',
+                    willOpen: () => {
+                        document.body.style.setProperty('height', '100%', 'important');
+                    }
+                });
+            }
+        });
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while fetching vendor',
+                    willOpen: () => {
+                        document.body.style.setProperty('height', '100%', 'important');
+                    }
+                });
+            }
+        });
+        
+    }
 });
 
         $("#btnLogout").click(function () {
