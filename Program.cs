@@ -156,8 +156,8 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
             InvoiceID = conn.InvoiceID,
             Date = conn.Date,
             emp_no = conn.emp_no,
-            vendor_no = conn.vendor_no
-
+            vendor_no = conn.vendor_no,
+            vendor_total = conn.vendor_total
         });
     }
 })

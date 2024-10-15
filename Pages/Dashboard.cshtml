@@ -75,6 +75,7 @@
                 <tr>
                     <th>Invoice Number</th>
                     <th>Vendor Number</th>
+                    <th>Vendor Total</th>
                     <th>Employee Number</th> <!-- Added emp_no -->
                     <th>Date</th>
                     <th>Edit/Print</th>
@@ -147,8 +148,9 @@
                     <tr>
                         <td>${invoice.invoiceID}</td>
                         <td>${invoice.vendor_no}</td>
+                        <td>${invoice.vendor_total}</td>
                         <td>${invoice.emp_no}</td>
-                        <td>${new Date(invoice.date).toLocaleDateString()}</td>
+                        <td>${invoice.date}</td>
                         <td>
                             <button id="btnEditInvoice" class="btn btn-secondary">Edit</button>
                             <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
