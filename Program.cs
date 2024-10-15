@@ -144,7 +144,7 @@ app.MapGet("/Products", async (MyDbContext dbContext) => {
     return Results.Ok(conn);
 });
 
-app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, char InvoiceID) => {
+app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string InvoiceID) => {
     var conn = await dbContext.Invoices.FindAsync(InvoiceID);
     if (conn == null)
     {
