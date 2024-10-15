@@ -4,20 +4,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 
 namespace DSD_Capstone.Pages;
 
 [Authorize]
-public class DashboardModel : PageModel
+public class DashboardModel(MyDbContext context) : PageModel
 {
-    private readonly MyDbContext db;
-    public DashboardModel(MyDbContext context)
-        {
-            db = context;
-        }
+    private readonly MyDbContext db = context;
+
     public List<string> Vendors { get; set; } = new List<string>();
     public async Task OnGetAsync()
     {

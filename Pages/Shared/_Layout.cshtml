@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,14 +14,18 @@
             display: border-box;
         }
 
-        html, body, main {
+        html,
+        body,
+        main {
             height: 100% !important;
         }
     </style>
 </head>
+
 <body>
     <div class="container h-100">
         <main role="main" class="pb-3">
+            @Html.AntiForgeryToken()
             @RenderBody()
         </main>
     </div>
@@ -30,6 +35,56 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script>
+        $(document).ready(function() {
+            function refreshCookies() {
+                $.ajax({
+                    url: "/RefreshCookies",
+                    type: "POST",
+                    // data: { CurrentPage: window.location.pathname },
+                    headers: {
+                        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    error: function(xhr, status, error) {
+                        // session expired or bad request so redirect to login
+                        if (xhr.status == 400) {
+                            window.location.href = "/Login?sessionExpired=true";
+                        }
+                    }
+                })
+            }
+
+            function checkCookies() {
+                // check if user is on the login page
+                if (window.location.pathname == "/Login") {
+                    return;
+                }
+                $.ajax({
+                    url: "/CheckCookies",
+                    type: "GET",
+                    headers: {
+                        RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (!response.success) {
+                            window.location.href = "/Login?sessionExpired=true";
+                        }
+                    }
+                })
+            }
+
+            $(document).click(function() {
+                refreshCookies();
+            })
+            $(document).keypress(function() {
+                refreshCookies();
+            })
+
+            setInterval(checkCookies, 60000);
+        })
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
