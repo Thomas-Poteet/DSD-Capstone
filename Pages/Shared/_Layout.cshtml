@@ -38,6 +38,7 @@
     <script>
         $(document).ready(function() {
             function refreshCookies() {
+                if ($(event.target).is('#btnLogout')) {return;}
                 $.ajax({
                     url: "/RefreshCookies",
                     type: "POST",
@@ -56,9 +57,7 @@
 
             function checkCookies() {
                 // check if user is on the login page
-                if (window.location.pathname == "/Login") {
-                    return;
-                }
+                if (window.location.pathname == "/Login") {return;}
                 $.ajax({
                     url: "/CheckCookies",
                     type: "GET",
