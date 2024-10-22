@@ -17,6 +17,10 @@ public class MyDbContext : DbContext
 
         modelBuilder.Entity<InvoiceProduct>()
             .HasKey(ip => new { ip.InvoiceID, ip.upc });
+
+        //Allowances primary composite key
+        modelBuilder.Entity<Allowance>()
+            .HasKey(a => new { a.vendor_no, a.upc, a.start_date, a.end_date });
         
         modelBuilder.Entity<Product>()
             .Property(p => p.normal_price)

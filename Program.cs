@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Namotion.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -163,6 +164,13 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
 })
 .WithName("GetInvoiceByID");
 
+
+app.MapGet("/Allowances", async (MyDbContext dbContext) => {
+    DateTime currentDate = DateTime.Now.Date;
+    var conn = await dbContext.Allowances
+        .Where(a => currentDate >= a.start_date && currentDate <= a.end_date)
+        .ToListAsync();
+});
 
 //Post to create a new product
 app.MapPost("/Products", async (Product product, MyDbContext dbContext) => {
