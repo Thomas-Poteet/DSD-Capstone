@@ -9,6 +9,7 @@ public class MyDbContext : DbContext
 
     public DbSet<Vendor> Vendors { get; set; }
     public DbSet<VendorProduct> VendorsProducts { get; set; }
+    public DbSet<Allowance> Allowances { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         //sets the VendorProduct entity's primary key as composite

@@ -172,6 +172,12 @@
                         method: 'GET'
                     });
 
+                    const allowanceResponse = await $.ajax({
+                        url: `/allowances/${upc}`,
+                        method: 'GET'
+                    });
+
+
                     const dept_name = departmentResponse.dept_name;
 
                     Swal.fire({

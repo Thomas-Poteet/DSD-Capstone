@@ -165,10 +165,10 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
 .WithName("GetInvoiceByID");
 
 
-app.MapGet("/Allowances", async (MyDbContext dbContext) => {
+app.MapGet("/Allowances/{upc}", async (MyDbContext dbContext, string upc) => {
     DateTime currentDate = DateTime.Now.Date;
     var conn = await dbContext.Allowances
-        .Where(a => currentDate >= a.start_date && currentDate <= a.end_date)
+        .Where(a => currentDate >= a.start_date && currentDate <= a.end_date && upc == a.upc)
         .ToListAsync();
 });
 
