@@ -157,9 +157,13 @@
                             text: 'Please fill out either the Vendor field or both Date fields.'
                         });
                     }
+                    // Clear the fields and unlock them
+                    $('#txtVendor').val('').prop('disabled', false);
+                    $('#txtStartDate').val('').prop('disabled', false);
+                    $('#txtEndDate').val('').prop('disabled', false);
                 });
 
-                // Fetch invoices for the selected vendor
+                // Fetch vendor_no from name
                 function fetchInvoicesByVendor(vendorId) {
                     $.ajax({
                         url: `/vendors/${vendorId}`,
@@ -187,17 +191,45 @@
 
                 // Fetch invoices within the selected date range
                 function fetchInvoicesByDateRange(startDate, endDate) {
-                    $.ajax({
-                        url: `/InvoicesByDateRange?start=${startDate}&end=${endDate}`,
-                        method: 'GET',
-                        success: function(invoices) {
-                            updateTable(invoices);
-                        },
-                        error: function() {
-                            showError('Error fetching invoices by date range.');
-                        }
+                // Validate date range
+                if(endDate < startDate) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'End date cannot be earlier than start date.'
                     });
+                    return;
                 }
+                $.ajax({
+                    url: `/InvoicesByDate/${startDate}/${endDate}`,
+                    method: 'GET',
+                    success: function(invoices) {
+                        const ajaxPromises = invoices.map((invoice) => {
+                            return $.ajax({
+                                url: `/VendorByNum/${invoice.vendor_no}`,
+                                method: 'GET',
+                                success: function(vendor) {
+                                    invoice.vendor = vendor.name; // Add vendor name to invoice
+                                },
+                                error: function() {
+                                    showError('Error fetching vendor details.');
+                                }
+                            });
+                        });
+
+                        // Wait for all vendor details to be fetched
+                        Promise.all(ajaxPromises).then(() => {
+                            updateTable(invoices);
+                        }).catch(() => {
+                            showError('Error fetching vendor details.');
+                        });
+                    },
+                    error: function() {
+                        showError('Error fetching invoices by date range.');
+                    }
+                });
+            }
+                
 
                 // Update the DataTable with the retrieved invoices
                 function updateTable(invoices, vendorId = "") {

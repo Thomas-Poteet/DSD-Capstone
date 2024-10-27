@@ -108,6 +108,21 @@ app.MapGet("/vendors/{vendorName}", async (MyDbContext dbContext, string vendorN
     }
 });
 
+//Get call to fetch the vendorName based off the vendor_no
+app.MapGet("/VendorByNum/{vendor_no}", async (MyDbContext dbContext, int vendor_no) => {
+    var conn = await dbContext.Vendors.FirstOrDefaultAsync(v => v.vendor_no == vendor_no);
+    if (conn == null)
+    {
+        return Results.NotFound("Vendor not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            name = conn.name
+        });
+    }
+});
+
 
 //Get call to fetch a product from the products table using a given UPC code
 app.MapGet("/products/{upc}", async (MyDbContext dbContext, string upc) => {
@@ -159,6 +174,7 @@ app.MapGet("/Products", async (MyDbContext dbContext) => {
     return Results.Ok(conn);
 });
 
+//Get call to fetch an Invoice from InvoiceID
 app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string InvoiceID) => {
     var conn = await dbContext.Invoices.FindAsync(InvoiceID);
     if (conn == null)
@@ -177,6 +193,29 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
     }
 })
 .WithName("GetInvoiceByID");
+
+//Get call to fetch Invoices from a date range
+app.MapGet("/InvoicesByDate/{start}/{end}", async (MyDbContext dbContext, DateOnly start, DateOnly end) => {
+    var invoices = await dbContext.Invoices
+        .Where(i => i.Date >= start && i.Date <= end)
+        .ToListAsync();
+        
+    if (invoices == null )
+    {
+        return Results.NotFound("Invoices not found");
+    }
+
+    // Return a list of invoices
+    return Results.Ok(invoices.Select(conn => new
+    {
+        InvoiceID = conn.InvoiceID,
+        Date = conn.Date,
+        emp_no = conn.emp_no,
+        vendor_no = conn.vendor_no,
+        vendor_total = conn.vendor_total
+    }));
+})
+.WithName("GetInvoicesByDate");
 
 // Get Invoices by vendor_no
 app.MapGet("/InvoicesByVendor/{vendor_no}", async (MyDbContext dbContext, int vendor_no) => {
