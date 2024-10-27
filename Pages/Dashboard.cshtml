@@ -39,21 +39,36 @@
     <!-- Search form with only Vendor selection -->
     <div class="container mt-3">
         <div class="row">
+            <h4>Filter Invoices</h4>
+            <p class="text-muted">Select either Vendor or Date Range to filter</p>
+            <!-- Vendor Filter Section -->
             <div class="col-md-4">
-                <label for="txtVendor">Vendor</label>
-                <input type="text" id="txtVendor" class="form-control rounded-3 py-0" list="dlVendors">
-                <datalist id="dlVendors">
-                    @foreach (var vendor in Model.Vendors)
-                    {
-                        <option value="@vendor"></option>
-                    }
-                </datalist>
+                <div class="filter-group border p-3 rounded">
+                    <label for="txtVendor">Vendor</label>
+                    <input type="text" id="txtVendor" class="form-control rounded-3" list="dlVendors">
+                    <datalist id="dlVendors">
+                        @foreach (var vendor in Model.Vendors)
+                        {
+                            <option value="@vendor"></option>
+                        }
+                    </datalist>
+                </div>
+            </div>
+            <!-- Date Range Filter Section -->
+            <div class="col-md-4">
+                <div class="filter-group border p-3 rounded">
+                    <label for="txtStartDate">Start Date</label>
+                    <input type="date" id="txtStartDate" class="form-control rounded-3">
+                    <label for="txtEndDate">End Date</label>
+                    <input type="date" id="txtEndDate" class="form-control rounded-3">
+                </div>
             </div>
         </div>
         <div class="mt-3">
-            <button type="button" class="btn btn-dark" id="btnSearch">Search</button>
+            <button type="button" class="btn btn-dark" id="btnSearch">Filter</button>
         </div>
     </div>
+    <hr>
 
     <!-- Invoices Table -->
     <div class="container mt-3">
@@ -78,6 +93,16 @@
         <script src="~/js/datatables.min.js"></script>
         <script>
             $(document).ready(function() {
+                // Disable date inputs if vendor is selected, and vice versa
+                $('#txtVendor').on('input', function() {
+                    const hasVendor = $(this).val() !== "";
+                    $('#txtStartDate, #txtEndDate').prop('disabled', hasVendor);
+                });
+
+                $('#txtStartDate, #txtEndDate').on('input', function() {
+                    const hasDate = $('#txtStartDate').val() !== "" || $('#txtEndDate').val() !== "";
+                    $('#txtVendor').prop('disabled', hasDate);
+                });
                 // Initial DataTable setup (empty on page load)
                 let table = $('#invoiceTable').DataTable({
                     dom: 'Bfrtip',
@@ -95,7 +120,7 @@
                 $("#btnCreateInvoice").click(function () {
                     window.location.href = "/invoice";
                 });
-
+                
                 // Fetch invoices when "Search" button is clicked
                 $('#btnSearch').on('click', function() {
                     const vendorId = $('#txtVendor').val();
