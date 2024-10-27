@@ -16,7 +16,7 @@ public class MyDbContext : DbContext
             .HasKey(vp => new { vp.vendor_no, vp.upc });  // Composite primary key
 
         modelBuilder.Entity<InvoiceProduct>()
-            .HasKey(ip => new { ip.InvoiceID, ip.upc });
+            .HasKey(ip => new { ip.InvoiceID, ip.upc, ip.vendor_no });
         
         modelBuilder.Entity<Product>()
             .Property(p => p.normal_price)
@@ -37,6 +37,9 @@ public class MyDbContext : DbContext
         //sets the Department entity's primary key as composite
         modelBuilder.Entity<Department>()
             .HasKey(d => new { d.dept_no, d.dept_sub });
+
+        modelBuilder.Entity<Invoice>()
+            .HasKey(i => new { i.InvoiceID, i.vendor_no });
 
         base.OnModelCreating(modelBuilder);
     }
