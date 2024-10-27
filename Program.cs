@@ -61,6 +61,21 @@ app.MapGet("/Employees", async (MyDbContext dbContext) => {
 .WithName("GetEmployee");
 //.WithOpenApi();
 
+//Get call to fetch the emp_FirstName and emp_LastName based off the name of the emp_no
+app.MapGet("/Employees/{emp_no}", async (MyDbContext dbContext, int emp_no) => {
+    var conn = await dbContext.Employees.FirstOrDefaultAsync(e => e.emp_no == emp_no);
+    if (conn == null)
+    {
+        return Results.NotFound("Employee not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            FirstName = conn.FirstName,
+            LastName = conn.LastName
+        });
+    }
+});
 
 //Get call to fetch the cost of a product from the VendorsProducts table using a given UPC code and vendor_no
 app.MapGet("/vendorsProducts/{upc}/{vendor_no}", async (MyDbContext dbContext, string upc, int vendor_no) => {

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Security.Claims;
+
 
 
 namespace DSD_Capstone.Pages;
@@ -25,6 +27,16 @@ public class DashboardModel : PageModel
         Vendors = await db.Vendors
             .Select(v => v.name)
             .ToListAsync();
+
+        // Get the employee name from the cookie
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        var employee = await db.Employees
+            .FirstOrDefaultAsync(e => e.UserName == username);
+        if (employee == null)
+        {
+            return;
+        }  
+        var emp_name = employee.FirstName + " " + employee.LastName;
     }
     
     

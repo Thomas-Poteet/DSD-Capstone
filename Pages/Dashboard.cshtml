@@ -61,9 +61,9 @@
             <thead>
                 <tr>
                     <th>Invoice Number</th>
-                    <th>Vendor Number</th>
+                    <th>Vendor</th>
                     <th>Total</th>
-                    <th>Employee Number</th>
+                    <th>Employee</th>
                     <th>Date</th>
                     <th>Edit/Print</th>
                 </tr>
@@ -78,8 +78,8 @@
         <script src="~/js/datatables.min.js"></script>
         <script>
             $(document).ready(function() {
-                // DataTable initialization (empty on page load)
-                $('#invoiceTable').DataTable({
+                // Initial DataTable setup (empty on page load)
+                let table = $('#invoiceTable').DataTable({
                     dom: 'Bfrtip',
                     buttons: [], // No buttons like print, copy, etc.
                     searching: true,  // Enable searching
@@ -87,7 +87,8 @@
                     responsive: true,
                     scrollY: 400,
                     scrollCollapse: true,
-                    stateSave: true
+                    stateSave: true,
+                    selection: true
                 });
 
                 // Event handler for the "Create Invoice" button
@@ -121,8 +122,7 @@
                                 url: `/InvoicesByVendor/${vendor_no}`,
                                 method: 'GET',
                                 success: function(invoices) {
-                                    // Destroy the existing DataTable instance if it exists
-                                    let table = $('#invoiceTable').DataTable();
+                                    // Destroy the existing DataTable instance
                                     table.clear().destroy();
 
                                     // Clear the previous invoice table
@@ -139,34 +139,50 @@
                                     }
 
                                     // Dynamically insert fetched invoices into the table
-                                    invoices.forEach((invoice) => {
-                                        let invoiceRow = `
-                                            <tr>
-                                                <td>${invoice.invoiceID}</td>
-                                                <td>${invoice.vendor_no}</td>
-                                                <td>$${invoice.vendor_total}</td>
-                                                <td>${invoice.emp_no}</td>
-                                                <td>${invoice.date}</td>
-                                                <td>
-                                                    <button id="btnEditInvoice" class="btn btn-secondary">Edit</button>
-                                                    <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
-                                                </td>
-                                            </tr>
-                                        `;
-                                        // Append the invoice row to the table body
-                                        $('#invoiceTable tbody').append(invoiceRow);
+                                    let invoicePromises = invoices.map((invoice) => {
+                                        return $.ajax({
+                                            url: `/Employees/${invoice.emp_no}`,
+                                            method: 'GET',
+                                            success: function(employee) {
+                                                let invoiceRow = `
+                                                    <tr>
+                                                        <td>${invoice.invoiceID}</td>
+                                                        <td>${vendorId}</td>
+                                                        <td>$${invoice.vendor_total}</td>
+                                                        <td>${employee.firstName} ${employee.lastName}</td>
+                                                        <td>${invoice.date}</td>
+                                                        <td>
+                                                            <button id="btnEditInvoice" class="btn btn-secondary">Edit</button>
+                                                            <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
+                                                        </td>
+                                                    </tr>
+                                                `;
+                                                // Append the invoice row to the table body
+                                                $('#invoiceTable tbody').append(invoiceRow);
+                                            },
+                                            error: function(xhr, status, error) {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Error',
+                                                    text: 'An error occurred while fetching employee details'
+                                                });
+                                            }
+                                        });
                                     });
 
-                                    // Reinitialize DataTable to update with new data
-                                    $('#invoiceTable').DataTable({
-                                        dom: 'Bfrtip',
-                                        buttons: [], // No buttons like print, copy, etc.
-                                        searching: true,
-                                        fixedHeader: true,
-                                        responsive: true,
-                                        scrollY: 400,
-                                        scrollCollapse: true,
-                                        stateSave: true
+                                    // Wait for all invoice rows to be inserted before reinitializing DataTable
+                                    Promise.all(invoicePromises).then(() => {
+                                        table = $('#invoiceTable').DataTable({
+                                            dom: 'Bfrtip',
+                                            buttons: [], // No buttons like print, copy, etc.
+                                            searching: true,
+                                            fixedHeader: true,
+                                            responsive: true,
+                                            scrollY: 400,
+                                            scrollCollapse: true,
+                                            stateSave: true,
+                                            selection: true
+                                        });
                                     });
                                 },
                                 error: function(xhr, status, error) {
