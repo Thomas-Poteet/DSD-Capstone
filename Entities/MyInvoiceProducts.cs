@@ -1,6 +1,7 @@
 public class InvoiceProduct
 {
     public required string InvoiceID { get; set; }
+    public required int vendor_no { get; set; }
     public required string upc { get; set; }
     public required int count { get; set; }
 
