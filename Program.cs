@@ -61,6 +61,21 @@ app.MapGet("/Employees", async (MyDbContext dbContext) => {
 .WithName("GetEmployee");
 //.WithOpenApi();
 
+//Get call to fetch the emp_FirstName and emp_LastName based off the name of the emp_no
+app.MapGet("/Employees/{emp_no}", async (MyDbContext dbContext, int emp_no) => {
+    var conn = await dbContext.Employees.FirstOrDefaultAsync(e => e.emp_no == emp_no);
+    if (conn == null)
+    {
+        return Results.NotFound("Employee not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            FirstName = conn.FirstName,
+            LastName = conn.LastName
+        });
+    }
+});
 
 //Get call to fetch the cost of a product from the VendorsProducts table using a given UPC code and vendor_no
 app.MapGet("/vendorsProducts/{upc}/{vendor_no}", async (MyDbContext dbContext, string upc, int vendor_no) => {
@@ -89,6 +104,21 @@ app.MapGet("/vendors/{vendorName}", async (MyDbContext dbContext, string vendorN
         return Results.Ok(new
         {
             vendor_no = conn.vendor_no
+        });
+    }
+});
+
+//Get call to fetch the vendorName based off the vendor_no
+app.MapGet("/VendorByNum/{vendor_no}", async (MyDbContext dbContext, int vendor_no) => {
+    var conn = await dbContext.Vendors.FirstOrDefaultAsync(v => v.vendor_no == vendor_no);
+    if (conn == null)
+    {
+        return Results.NotFound("Vendor not found");
+    }
+    else{
+        return Results.Ok(new
+        {
+            name = conn.name
         });
     }
 });
@@ -144,6 +174,7 @@ app.MapGet("/Products", async (MyDbContext dbContext) => {
     return Results.Ok(conn);
 });
 
+//Get call to fetch an Invoice from InvoiceID
 app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string InvoiceID) => {
     var conn = await dbContext.Invoices.FindAsync(InvoiceID);
     if (conn == null)
@@ -156,12 +187,58 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
             InvoiceID = conn.InvoiceID,
             Date = conn.Date,
             emp_no = conn.emp_no,
-            vendor_no = conn.vendor_no
-
+            vendor_no = conn.vendor_no,
+            vendor_total = conn.vendor_total
         });
     }
 })
 .WithName("GetInvoiceByID");
+
+//Get call to fetch Invoices from a date range
+app.MapGet("/InvoicesByDate/{start}/{end}", async (MyDbContext dbContext, DateOnly start, DateOnly end) => {
+    var invoices = await dbContext.Invoices
+        .Where(i => i.Date >= start && i.Date <= end)
+        .ToListAsync();
+        
+    if (invoices == null )
+    {
+        return Results.NotFound("Invoices not found");
+    }
+
+    // Return a list of invoices
+    return Results.Ok(invoices.Select(conn => new
+    {
+        InvoiceID = conn.InvoiceID,
+        Date = conn.Date,
+        emp_no = conn.emp_no,
+        vendor_no = conn.vendor_no,
+        vendor_total = conn.vendor_total
+    }));
+})
+.WithName("GetInvoicesByDate");
+
+// Get Invoices by vendor_no
+app.MapGet("/InvoicesByVendor/{vendor_no}", async (MyDbContext dbContext, int vendor_no) => {
+    var invoices = await dbContext.Invoices
+        .Where(i => i.vendor_no == vendor_no)
+        .ToListAsync();
+        
+    if (invoices == null )
+    {
+        return Results.NotFound("Invoices not found");
+    }
+
+    // Return a list of invoices
+    return Results.Ok(invoices.Select(conn => new
+    {
+        InvoiceID = conn.InvoiceID,
+        Date = conn.Date,
+        emp_no = conn.emp_no,
+        vendor_no = conn.vendor_no,
+        vendor_total = conn.vendor_total
+    }));
+})
+.WithName("GetInvoicesByVendor");
 
 
 //Post to create a new product
