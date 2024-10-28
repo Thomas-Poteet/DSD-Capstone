@@ -172,11 +172,22 @@
                         method: 'GET'
                     });
 
+                    //this will be a list that will be parsed through
                     const allowanceResponse = await $.ajax({
-                        url: `/allowances/${upc}`,
+                        url: `/Allowances/${upc}/${vendor_no}`,
                         method: 'GET'
                     });
 
+                    //variables to find the total discount from allowances by parsing
+                    var discount_total = 0.0;
+                    var i = 0; 
+                    while (i < allowanceResponse.length)
+                    {
+                        //adding up the the discount costs from the list
+                        discount_total += allowanceResponse[i].discount_cost;
+                        i++;
+                    }
+        
 
                     const dept_name = departmentResponse.dept_name;
 
@@ -214,7 +225,7 @@
                             const numItemCount = parseInt(result.value);
 
                             // Placeholder for item cost
-                            const numItemCost = vendor_cost;
+                            const numItemCost = vendor_cost - discount_total;
                             const numItemRetail = data.price;
 
                             // Update the total units, cost, retail, and add UPC to array

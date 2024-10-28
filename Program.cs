@@ -158,18 +158,24 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
             Date = conn.Date,
             emp_no = conn.emp_no,
             vendor_no = conn.vendor_no
-
         });
     }
 })
 .WithName("GetInvoiceByID");
 
-
-app.MapGet("/Allowances/{upc}", async (MyDbContext dbContext, string upc) => {
-    DateTime currentDate = DateTime.Now.Date;
+//get call to fetch any allowances for a product by current date
+app.MapGet("/Allowances/{upc}/{vendor_no}", async (MyDbContext dbContext, string upc, int vendor_no) => {
+    var currentDate = DateTime.Now.Date;
     var conn = await dbContext.Allowances
-        .Where(a => currentDate >= a.start_date && currentDate <= a.end_date && upc == a.upc)
+        .Where(a => currentDate >= a.start_date && currentDate <= a.end_date && upc == a.upc && vendor_no == a.vendor_no)
         .ToListAsync();
+    if (conn == null)
+    {
+        return Results.NotFound("No allowances");
+    }
+    else{
+        return Results.Ok(conn);
+    }
 });
 
 //Post to create a new product

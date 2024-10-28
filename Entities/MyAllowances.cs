@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 public class Allowance
 {
     public required int vendor_no { get; set; }
