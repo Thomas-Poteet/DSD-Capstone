@@ -22,9 +22,18 @@ public class InvoiceModel(MyDbContext context) : PageModel
 
     public async Task<IActionResult> OnPostAsync(InvoiceRequest request)
     {
-        // Check if invoice number already exists
+        // Get vendor number
+        var vendor = await db.Vendors
+            .FirstOrDefaultAsync(v => v.name == request.VendorName);
+        if (vendor == null)
+        {
+            return new JsonResult(new { success = false, message = "Vendor not found" });
+        }
+        var vendor_no = vendor.vendor_no;
+
+        // Check if invoice number already exists for the vendor
         var invoice = await db.Invoices
-            .FirstOrDefaultAsync(i => i.InvoiceID == request.InvoiceID);
+            .FirstOrDefaultAsync(i => i.InvoiceID == request.InvoiceID && i.vendor_no == vendor_no);
         if (invoice != null)
         {
             return new JsonResult(new { success = false, message = "Invoice number already exists" });
@@ -39,15 +48,6 @@ public class InvoiceModel(MyDbContext context) : PageModel
             return RedirectToPage("/Login");
         }  
         var emp_no = employee.emp_no;
-
-        // Get vendor number
-        var vendor = await db.Vendors
-            .FirstOrDefaultAsync(v => v.name == request.VendorName);
-        if (vendor == null)
-        {
-            return new JsonResult(new { success = false, message = "Vendor not found" });
-        }
-        var vendor_no = vendor.vendor_no;
 
         // Create new invoice
         var newInvoice = new Invoice
@@ -71,6 +71,7 @@ public class InvoiceModel(MyDbContext context) : PageModel
                 InvoiceID = request.InvoiceID,
                 upc = upc,
                 count = count,
+                vendor_no = vendor_no,
                 Invoice = newInvoice
             };
             newInvoice.InvoiceProducts.Add(newInvoiceProduct);

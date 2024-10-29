@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 public class Invoice
 {
-    [Key]
     public required string InvoiceID { get; set; }
     public required short emp_no { get; set; }
     public required int vendor_no { get; set; }
