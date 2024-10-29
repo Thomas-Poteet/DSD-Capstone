@@ -27,7 +27,7 @@
                 <div class="pb-2">
                     <a id="btnBack" class="btn position-absolute px-0 shadow-none" asp-page="/Dashboard"><i
                             class="fa-solid fa-chevron-left"></i></a>
-                    <h2 class="text-center"><span id="spnCreateEdit">Create</span> Invoice</h2>
+                    <h2 class="text-center">Save Invoice</h2>
                 </div>
                 @* Top Section Inputs *@
                 <div class="row">
@@ -239,33 +239,33 @@
 
                             // Add the product to the invoice
                             $("#divItemsCard").append(`
-                                    <div class="card p-2 mb-2">
-                                        <div class="d-flex justify-content-between align-items-center cardHeader">
-                                            <div>
-                                                <p class="fw-bold m-0">${upc}</p>
-                                                <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                            </div>
-                                            <div class="d-flex flex-column justify-content-between h-100">
-                                                <button type="button" class="btnEdit btn p-0 shadow-none"><i
-                                                        class="fa-regular fa-pen-to-square"></i></button>
-                                                <i class="chevron fa-solid fa-chevron-down"></i>
-                                            </div>
+                                <div class="card p-2 mb-2">
+                                    <div class="d-flex justify-content-between align-items-center cardHeader">
+                                        <div>
+                                            <p class="fw-bold m-0">${upc}</p>
+                                            <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
                                         </div>
-                                        <div class="dropdownContent" style="display: none;">
-                                            <div class="d-flex justify-content-between mt-2">
-                                                <div>
-                                                <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
-                                            </div>
-                                            <div class="d-flex flex-column align-items-end">
-                                                <p class="m-0">Department: ${dept_name}</p>
-                                                <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                                <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                            </div>
+                                        <div class="d-flex flex-column justify-content-between h-100">
+                                            <button type="button" class="btnEdit btn p-0 shadow-none"><i
+                                                    class="fa-regular fa-pen-to-square"></i></button>
+                                            <i class="chevron fa-solid fa-chevron-down"></i>
                                         </div>
                                     </div>
-                                `);
+                                    <div class="dropdownContent" style="display: none;">
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <div>
+                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end">
+                                            <p class="m-0">Department: ${dept_name}</p>
+                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
                             //clear txtUPC value
                             $("#txtUPC").val("");
                         }
@@ -534,7 +534,8 @@
                         Date: strDate,
                         VendorTotal: parseFloat(numVendorTotal),
                         UPCs: arrUPCs,
-                        Counts: arrCounts
+                        Counts: arrCounts,
+                        Update: false
                     },
                     headers: {
                         RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
@@ -547,12 +548,61 @@
                                 title: 'Success',
                                 text: 'Invoice saved successfully'
                             });
-                        } else {
+                        } else if (response.duplicate) {
                             Swal.fire({
                                 heightAuto: false,
-                                icon: 'error',
-                                title: 'Error saving invoice',
-                                text: response.message
+                                icon: 'warning',
+                                title: "Invoice already exists",
+                                text: 'Do you want to update the existing invoice? Type the invoice number to confirm',
+                                input: 'text',
+                                inputPlaceholder: 'Type the invoice number to confirm',
+                                inputValidator: (value) => {
+                                    if (value !== strInvoiceNumber) {
+                                        return 'You need to type the invoice number to confirm';
+                                    }
+                                },
+                                showCancelButton: true,
+                                confirmButtonText: 'Confirm',
+                                cancelButtonText: 'Cancel'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        url: '/Invoice',
+                                        method: 'POST',
+                                        data: {
+                                            InvoiceID: strInvoiceNumber,
+                                            VendorName: strVendor,
+                                            Date: strDate,
+                                            VendorTotal: parseFloat(numVendorTotal),
+                                            UPCs: arrUPCs,
+                                            Counts: arrCounts,
+                                            Update: true
+                                        },
+                                        headers: {
+                                            RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                                        },
+                                        success: function (response) {
+                                            if (response.success) {
+                                                Swal.fire({
+                                                    heightAuto: false,
+                                                    icon: 'success',
+                                                    title: 'Success',
+                                                    text: 'Invoice saved successfully'
+                                                });
+                                            }
+                                        },
+                                        error: function () {
+                                            Swal.fire({
+                                                heightAuto: false,
+                                                icon: 'error',
+                                                title: 'Error',
+                                                text: 'Error saving invoice'
+                                            });
+                                        }
+                                    });
+                                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                    return;
+                                }
                             });
                         }
                     },
