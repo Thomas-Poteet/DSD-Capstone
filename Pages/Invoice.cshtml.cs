@@ -57,6 +57,7 @@ public class InvoiceModel(MyDbContext context) : PageModel
             vendor_no = vendor_no,
             Date = DateOnly.Parse(request.Date),
             vendor_total = request.VendorTotal,
+            retail_total = request.RetailTotal,
             InvoiceProducts = []
         };
 
