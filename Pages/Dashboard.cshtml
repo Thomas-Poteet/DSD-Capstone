@@ -16,6 +16,11 @@
             transform: translateY(1px);
             box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
         }
+        .dt-control {
+            cursor: pointer;
+            text-align: center;
+            width: 30px; /* Adjust as needed */
+        }
     </style>
     <link rel="stylesheet" href="~/css/datatables.min.css" />
 </head>
@@ -72,12 +77,12 @@
         <table id="invoiceTable" class="table table-bordered">
             <thead>
                 <tr>
+                    <th></th>
                     <th>Invoice Number</th>
                     <th>Vendor</th>
                     <th>Total</th>
                     <th>Employee</th>
                     <th>Date</th>
-                    <th>Edit/Print</th>
                 </tr>
             </thead>
             <tbody>
@@ -112,16 +117,46 @@
                 });
 
                 // Initial DataTable setup
-                let table = $('#invoiceTable').DataTable({
+                  let table = $('#invoiceTable').DataTable({
                     dom: 'Bfrtip',
-                    buttons: [],
+                    buttons: [
+                        {
+                            extend: 'print',
+                            text: 'Print',
+                            className: 'btn btn-dark buttonPress'
+                        }
+                    ],
+                    columnDefs: [
+                        { orderable: false, className: 'dt-control', targets: 0 }  // Arrow column
+                    ],
                     searching: true,
                     fixedHeader: true,
                     responsive: true,
                     scrollY: 400,
-                    scrollCollapse: true,
                     stateSave: true,
-                    selection: true
+                    select: {
+                        style: 'os',
+                        selector: 'td:first-child',
+                        blurable: true
+                    }
+                });
+
+                // Add arrow icon to each row's first cell
+                $('#invoiceTable tbody').on('click', 'td.dt-control', function () {
+                    const tr = $(this).closest('tr');
+                    const row = table.row(tr);
+
+                    if (row.child.isShown()) {
+                        // Close row details
+                        row.child.hide();
+                        tr.removeClass('shown');
+                        $(this).html('<i class="bi bi-chevron-right"></i>'); // Reset arrow icon to right
+                    } else {
+                        // Show row details with Edit and Print buttons in dropdown
+                        row.child(formatRowDetails(row.data())).show();
+                        tr.addClass('shown');
+                        $(this).html('<i class="bi bi-chevron-down"></i>'); // Set arrow icon to down
+                    }
                 });
 
                 // Event handler for the "Search" button
@@ -173,6 +208,7 @@
                                 url: `/InvoicesByVendor/${vendor_no}`,
                                 method: 'GET',
                                 success: function(invoices) {
+
                                     updateTable(invoices, vendorId);
                                 },
                                 error: function() {
@@ -249,15 +285,13 @@
                             success: function(employee) {
                                 const invoiceRow = `
                                     <tr>
+                                        <td class="dt-control"><i class="bi bi-chevron-right"></i></td>
                                         <td>${invoice.invoiceID}</td>
                                         <td>${vendorId || invoice.vendor}</td>
                                         <td>$${invoice.vendor_total}</td>
                                         <td>${employee.firstName} ${employee.lastName}</td>
                                         <td>${invoice.date}</td>
-                                        <td>
-                                            <button id="btnEditInvoice" class="btn btn-secondary">Edit</button>
-                                            <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
-                                        </td>
+
                                     </tr>
                                 `;
                                 $('#invoiceTable tbody').append(invoiceRow);
@@ -272,16 +306,49 @@
                     Promise.all(invoicePromises).then(() => {
                         table = $('#invoiceTable').DataTable({
                             dom: 'Bfrtip',
-                            buttons: [],
+                            buttons: [
+                                {
+                                    extend: 'print',
+                                    text: 'Print',
+                                    className: 'btn btn-dark buttonPress'
+                                }
+                            ],
+                            columnDefs: [
+                                { orderable: false, className: 'dt-control', targets: 0 }  // Arrow column
+                            ],
                             searching: true,
                             fixedHeader: true,
                             responsive: true,
                             scrollY: 400,
-                            scrollCollapse: true,
                             stateSave: true,
-                            selection: true
+                            select: {
+                                style: 'os',
+                                selector: 'td:first-child',
+                                blurable: true
+                            }
                         });
                     });
+                }
+
+                // Function to format the details row with Edit/Print buttons
+                function formatRowDetails(data) {
+                    return `
+                        <div class="row p-3">
+                            <div class="col-md-6">
+                                <strong>Gross:</strong> X% <br>
+                                <strong>Margin:</strong> $X
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Units:</strong> X <br>
+                                <strong>Cost:</strong> $X <br>
+                                <strong>Retail:</strong> $X
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <button class="btn btn-secondary me-2" id="btnEditInvoice">Edit</button>
+                                <button class="btn btn-secondary" id="btnPrintInvoice">Print</button>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // Display error message
