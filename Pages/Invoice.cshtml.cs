@@ -20,6 +20,60 @@ public class InvoiceModel(MyDbContext context) : PageModel
             .ToListAsync();
     }
 
+    public async Task<IActionResult> OnGetInvoiceAsync(string vendorName, string invoiceID) {
+        // Get vendor number
+        var vendor = await db.Vendors
+            .FirstOrDefaultAsync(v => v.name == vendorName);
+        if (vendor == null)
+        {
+            return new JsonResult(new { success = false, duplicate = false });
+        }
+        var vendor_no = vendor.vendor_no;
+
+        // Check if invoice number already exists for the vendor
+        var invoice = await db.Invoices
+            .FirstOrDefaultAsync(i => i.InvoiceID == invoiceID && i.vendor_no == vendor_no);
+        if (invoice == null)
+        {
+            return new JsonResult(new { success = true, duplicate = false });
+        }
+        return new JsonResult(new { success = true, duplicate = true });
+    }
+
+    public async Task<IActionResult> OnGetFillInvoiceAsync(string vendorName, string invoiceID) {
+        // Get vendor number
+        var vendor = await db.Vendors
+            .FirstOrDefaultAsync(v => v.name == vendorName);
+        if (vendor == null)
+        {
+            return new JsonResult(new { success = false, duplicate = false });
+        }
+        var vendor_no = vendor.vendor_no;
+
+        // Check if invoice number already exists for the vendor
+        var invoice = await db.Invoices
+            .FirstOrDefaultAsync(i => i.InvoiceID == invoiceID && i.vendor_no == vendor_no);
+        if (invoice == null)
+        {
+            return new JsonResult(new { success = true, duplicate = false });
+        }
+
+        var Products = await db.InvoiceProducts
+                .Where(ip => ip.InvoiceID == invoiceID && ip.vendor_no == vendor_no)
+                .ToListAsync();
+        var arrUPCs = Products.Select(p => p.upc).ToArray();
+        var arrCounts = Products.Select(p => p.count).ToArray();
+
+        return new JsonResult(new {
+            success = true,
+            duplicate = true,
+            date = invoice.Date,
+            vendorTotal = invoice.vendor_total,
+            arrUPCs,
+            arrCounts
+        });
+    }
+
     public async Task<IActionResult> OnPostAsync(InvoiceRequest request)
     {
         // Get vendor number

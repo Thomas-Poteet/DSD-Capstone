@@ -15,19 +15,35 @@
             transform: translateY(1px);
             box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
         }
+
+        #txtInvoiceNumber {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-top-left-radius: .3rem;
+            border-bottom-left-radius: .3rem;
+        }
+
+        #btnFill {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-top-right-radius: .3rem;
+            border-bottom-right-radius: .3rem;
+        }
     </style>
 </head>
 
 <body id="invoicePage">
     <form class="h-100 mx-auto" style="max-width: 500px;">
-        <div class="d-flex flex-column justify-content-between h-100 py-2">
+        <div class="d-flex flex-column justify-content-between h-100 py-2 position-relative">
             @* Top Section *@
             <div>
                 @* Top Section Title and Back Button*@
                 <div class="pb-2">
                     <a id="btnBack" class="btn position-absolute px-0 shadow-none" asp-page="/Dashboard"><i
                             class="fa-solid fa-chevron-left"></i></a>
-                    <h2 class="text-center">Save Invoice</h2>
+                    <button type="button" id="btnClear"
+                        class="btn btn-danger py-1 mt-1 shadow-none buttonPress position-absolute end-0">Clear</button>
+                    <h2 class="text-center"><span id="spnTitle">Save</span> Invoice</h2>
                 </div>
                 @* Top Section Inputs *@
                 <div class="row">
@@ -40,21 +56,31 @@
                                 <option value="@vendor"></option>
                             }
                         </datalist>
-                        <label for="txtInvoiceNumber" class="mt-1">Invoice Number</label>
-                        <input type="text" id="txtInvoiceNumber" class="form-control rounded-3 py-0">
+                        <label for="txtInvoiceNumber" class="mt-1 d-flex">Invoice Number <button style="display: none;"
+                                type="button" id="btnEditInvoiceNum"
+                                class="btn p-0 ms-1 shadow-none align-items-center"><i
+                                    style="font-size: 13px !important;"
+                                    class="fa-regular fa-pen-to-square"></i></button></label>
+                        <div class="d-flex">
+                            <input type="text" id="txtInvoiceNumber" class="form-control py-0">
+                            <button type="button" id="btnFill"
+                                class="btn btn-secondary shadow-none py-0 buttonPress">Fill</button>
+                        </div>
                     </div>
                     <div class="col-5">
                         <label for="txtDate">Date</label>
                         <input type="date" id="txtDate" class="form-control rounded-3 py-0">
                         <label for="txtVendorTotal" class="mt-1">Vendor Total</label>
-                        <input type="number" step="0.01" id="txtVendorTotal" class="form-control rounded-3 py-0">
+                        <input disabled type="number" step="0.01" id="txtVendorTotal"
+                            class="form-control rounded-3 py-0">
                     </div>
                 </div>
                 @* Card where UPC is entered. Will pop up count card after enter or Add Product button is pressed *@
                 <div class="card p-2 mt-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <input type="text" id="txtUPC" placeholder="UPC" class="form-control rounded-3 py-0">
+                            <input disabled type="text" id="txtUPC" placeholder="UPC"
+                                class="form-control rounded-3 py-0">
                         </div>
                         <div>
                             <button type="button" id="btnAddProduct"
@@ -89,12 +115,180 @@
         $(document).ready(function () {
             // date defualts to today
             $("#txtDate").val(getTodayDate());
+            $("#txtDate").prop('disabled', true);
 
             numTotalUnits = 0;
             numTotalCost = 0;
             numTotalRetail = 0;
             arrUPCs = [];
             arrCounts = [];
+
+            // Clear all inputs and arrays when the Clear button is pressed
+            $("#btnClear").on("click", function () {
+                if ($("#spnTitle").text() === "Create") {
+                    message = "This will discard the current invoice";
+                } else if ($("#spnTitle").text() === "Update") {
+                    message = "This will discard all changes";
+                } else {
+                    $("#txtVendor").val("");
+                    $("#txtInvoiceNumber").val("");
+                    return;
+                }
+                Swal.fire({
+                    heightAuto: false,
+                    icon: 'warning',
+                    title: 'Are you sure?',
+                    text: message,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $("#spnTitle").text("Save");
+                        $("#txtVendor").val("");
+                        $("#txtInvoiceNumber").val("");
+                        $("#btnEditInvoiceNum").css("display", "none");
+                        $("#txtDate").val(getTodayDate());
+                        $("#txtVendorTotal").val("");
+                        $("#txtUPC").val("");
+                        $("#divItemsCard").empty();
+                        $("#spnTotalUnits").text("0");
+                        $("#spnTotalCost").text("0.00");
+                        $("#spnTotalRetail").text("0.00");
+                        $("#spnTotalGrossMargin").text("0.00");
+                        $("#spnBalance").text("0.00");
+                        $("#txtVendor").prop('disabled', false);
+                        $("#txtInvoiceNumber").prop('disabled', false);
+                        $("#txtDate").prop('disabled', true);
+                        $("#txtVendorTotal").prop('disabled', true);
+                        $("#txtUPC").prop('disabled', true);
+                        $("#btnFill").prop('disabled', false);
+                        numTotalUnits = 0;
+                        numTotalCost = 0;
+                        numTotalRetail = 0;
+                        arrUPCs = [];
+                        arrCounts = [];
+                    }
+                });
+            });
+
+            // Lets the user change the invoice number when creating a new invoice
+            $("#btnEditInvoiceNum").on("click", function () {
+                Swal.fire({
+                    heightAuto: false,
+                    title: 'Edit Invoice Number',
+                    input: 'text',
+                    inputValue: $("#txtInvoiceNumber").val(),
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'You need to enter an invoice number!';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/Invoice?handler=Invoice',
+                            method: 'GET',
+                            data: {
+                                vendorName: $("#txtVendor").val(),
+                                invoiceID: result.value
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    if (!response.duplicate) {
+                                        $("#txtInvoiceNumber").val(result.value);
+                                    } else {
+                                        Swal.fire({
+                                            heightAuto: false,
+                                            icon: 'error',
+                                            title: 'Invoice number already exists',
+                                            text: 'Clear or save first if you want to edit a different invoice.'
+                                        });
+                                    }
+                                } else {
+                                    Swal.fire({
+                                        heightAuto: false,
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'Vendor not found'
+                                    });
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    heightAuto: false,
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Error changing invoice number'
+                                });
+                            }
+                        })
+                    }
+                });
+            });
+
+            // Fills in invoice information if the invoice already exists. Otherwise just enables the inputs
+            $("#btnFill").on("click", function () {
+                const strVendor = $("#txtVendor").val();
+                const strInvoiceNumber = $("#txtInvoiceNumber").val();
+
+                if (strVendor === "" || strInvoiceNumber === "") {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Please enter a vendor and invoice number'
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Invoice?handler=FillInvoice',
+                    method: 'GET',
+                    data: {
+                        vendorName: strVendor,
+                        invoiceID: strInvoiceNumber
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $("#btnFill").prop('disabled', true);
+                            $("#txtVendor").prop('disabled', true);
+                            $("#txtInvoiceNumber").prop('disabled', true);
+                            $("#txtDate").prop('disabled', false);
+                            $("#txtVendorTotal").prop('disabled', false);
+                            $("#txtUPC").prop('disabled', false);
+                            if (!response.duplicate) {
+                                $("#spnTitle").text("Create");
+                                $("#btnEditInvoiceNum").css("display", "flex");
+                            } else {
+                                $("#spnTitle").text("Update");
+                                $("#txtDate").val(response.date);
+                                $("#txtVendorTotal").val(response.vendorTotal);
+                                for (let i = 0; i < response.arrUPCs.length; i++) {
+                                    addProduct(response.arrUPCs[i], response.arrCounts[i]);
+                                }
+                            }
+                        } else {
+                            Swal.fire({
+                                heightAuto: false,
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Vendor Not Found'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            heightAuto: false,
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error filling invoice'
+                        });
+                    }
+                });
+            })
 
             // Adds a the product with the UPC in the txtUPC input to the invoice when the Add Product button is pressed
             $("#btnAddProduct").on("click", function () {
@@ -136,10 +330,10 @@
                     return;
                 }
                 //call the add product function to fetch product data and add it to invoice page
-                addProduct();
+                addProduct($("#txtUPC").val());
             });
 
-            async function addProduct() {
+            async function addProduct(upc, numItemCount = -1) {
                 try {
                     const vendorName = $("#txtVendor").val();
 
@@ -149,8 +343,6 @@
                     });
 
                     const vendor_no = vendorResponse.vendor_no;
-
-                    const upc = $("#txtUPC").val();
 
                     const vendorsProductResponse = await $.ajax({
                         url: `/vendorsProducts/${upc}/${vendor_no}`,
@@ -173,103 +365,172 @@
 
                     const dept_name = departmentResponse.dept_name;
 
-                    Swal.fire({
-                        heightAuto: false,
-                        title: strItemName,
-                        input: 'number',
-                        inputLabel: 'Enter Item Count',
-                        inputAttributes: {
-                            min: 1,
-                            max: 999,
-                            step: 1   // only integers
-                        },
-                        showCancelButton: true,
-                        confirmButtonText: 'Submit',
-                        inputValidator: (value) => {
-                            if (isNaN(value) || value == "") {
-                                return 'You need to enter a number!';
+                    if (numItemCount == -1) {
+                        Swal.fire({
+                            heightAuto: false,
+                            title: strItemName,
+                            input: 'number',
+                            inputLabel: 'Enter Item Count',
+                            inputAttributes: {
+                                min: 1,
+                                max: 999,
+                                step: 1   // only integers
+                            },
+                            showCancelButton: true,
+                            confirmButtonText: 'Submit',
+                            inputValidator: (value) => {
+                                if (isNaN(value) || value == "") {
+                                    return 'You need to enter a number!';
+                                }
+                                if (value < 0) {
+                                    return 'Count cannot be negative!';
+                                }
+                                if (value % 1 !== 0) {
+                                    return 'Count must be a whole number!';
+                                }
+                                if (value == 0) {
+                                    return 'Count must be greater than 0!';
+                                }
+                                if (value > 999) {
+                                    return 'Count must be less than 1000!';
+                                }
                             }
-                            if (value < 0) {
-                                return 'Count cannot be negative!';
-                            }
-                            if (value % 1 !== 0) {
-                                return 'Count must be a whole number!';
-                            }
-                            if (value == 0) {
-                                return 'Count must be greater than 0!';
-                            }
-                            if (value > 999) {
-                                return 'Count must be less than 1000!';
-                            }
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const numItemCount = parseInt(result.value);
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                numItemCount = parseInt(result.value);
 
-                            // Placeholder for item cost
-                            const numItemCost = vendor_cost;
-                            const numItemRetail = data.price;
+                                // Placeholder for item cost
+                                const numItemCost = vendor_cost;
+                                const numItemRetail = data.price;
 
-                            // Update the total units, cost, retail, and add UPC to array
-                            numTotalUnits += numItemCount;
-                            numTotalCost += numItemCost * numItemCount;
-                            numTotalRetail += numItemRetail * numItemCount;
-                            arrUPCs.push(upc);
-                            arrCounts.push(numItemCount);
-                            if (arrUPCs.length === 1) {
-                                $("#txtVendor").prop('disabled', true);
-                            }
+                                // Update the total units, cost, retail, and add UPC to array
+                                numTotalUnits += numItemCount;
+                                numTotalCost += numItemCost * numItemCount;
+                                numTotalRetail += numItemRetail * numItemCount;
+                                arrUPCs.push(upc);
+                                arrCounts.push(numItemCount);
+                                if (arrUPCs.length === 1) {
+                                    $("#txtVendor").prop('disabled', true);
+                                }
 
-                            // Update the total units, cost, and retail in the UI
-                            $("#spnTotalUnits").text(numTotalUnits);
-                            $("#spnTotalCost").text(numTotalCost.toFixed(2));
-                            $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
-                            $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
-                            if ($("#txtVendorTotal").val() === '') {
-                                if (numTotalCost === 0) {
-                                    $("#spnBalance").text((0.00).toFixed(2));
+                                // Update the total units, cost, and retail in the UI
+                                $("#spnTotalUnits").text(numTotalUnits);
+                                $("#spnTotalCost").text(numTotalCost.toFixed(2));
+                                $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
+                                $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+                                if ($("#txtVendorTotal").val() === '') {
+                                    if (numTotalCost === 0) {
+                                        $("#spnBalance").text((0.00).toFixed(2));
+                                    }
+                                    else {
+                                        $("#spnBalance").text((0.00 - numTotalCost).toFixed(2));
+                                    }
                                 }
                                 else {
-                                    $("#spnBalance").text((0.00 - numTotalCost).toFixed(2));
+                                    $("#spnBalance").text(($("#txtVendorTotal").val() - numTotalCost).toFixed(2));
                                 }
+
+                                // Add the product to the invoice
+                                $("#divItemsCard").append(`
+                                                <div class="card p-2 mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center cardHeader">
+                                                        <div>
+                                                            <p class="fw-bold m-0">${upc}</p>
+                                                            <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
+                                                        </div>
+                                                        <div class="d-flex flex-column justify-content-between h-100">
+                                                            <button type="button" class="btnEdit btn p-0 shadow-none"><i
+                                                                    class="fa-regular fa-pen-to-square"></i></button>
+                                                            <i class="chevron fa-solid fa-chevron-down"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="dropdownContent" style="display: none;">
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="d-flex flex-column align-items-start">
+                                                                <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                                                <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                            </div>
+                                                            <div class="d-flex flex-column align-items-end">
+                                                                <p class="m-0">Department: ${dept_name}</p>
+                                                                <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                                                <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `);
+                                //clear txtUPC value
+                                $("#txtUPC").val("");
+
+                                return;
+                            }
+                        });
+                    } else {
+                        // Placeholder for item cost
+                        const numItemCost = vendor_cost;
+                        const numItemRetail = data.price;
+
+                        // Update the total units, cost, retail, and add UPC to array
+                        numTotalUnits += numItemCount;
+                        numTotalCost += numItemCost * numItemCount;
+                        numTotalRetail += numItemRetail * numItemCount;
+                        arrUPCs.push(upc);
+                        arrCounts.push(numItemCount);
+                        if (arrUPCs.length === 1) {
+                            $("#txtVendor").prop('disabled', true);
+                        }
+
+                        // Update the total units, cost, and retail in the UI
+                        $("#spnTotalUnits").text(numTotalUnits);
+                        $("#spnTotalCost").text(numTotalCost.toFixed(2));
+                        $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
+                        $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+                        if ($("#txtVendorTotal").val() === '') {
+                            if (numTotalCost === 0) {
+                                $("#spnBalance").text((0.00).toFixed(2));
                             }
                             else {
-                                $("#spnBalance").text(($("#txtVendorTotal").val() - numTotalCost).toFixed(2));
+                                $("#spnBalance").text((0.00 - numTotalCost).toFixed(2));
                             }
-
-                            // Add the product to the invoice
-                            $("#divItemsCard").append(`
-                                <div class="card p-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center cardHeader">
-                                        <div>
-                                            <p class="fw-bold m-0">${upc}</p>
-                                            <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
-                                        </div>
-                                        <div class="d-flex flex-column justify-content-between h-100">
-                                            <button type="button" class="btnEdit btn p-0 shadow-none"><i
-                                                    class="fa-regular fa-pen-to-square"></i></button>
-                                            <i class="chevron fa-solid fa-chevron-down"></i>
-                                        </div>
-                                    </div>
-                                    <div class="dropdownContent d-flex justify-content-between" style="display: none;">
-                                        <div class="d-flex flex-column align-items-start">
-                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
-                                        </div>
-                                        <div class="d-flex flex-column align-items-end">
-                                            <p class="m-0">Department: ${dept_name}</p>
-                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
-                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            `);
-                            //clear txtUPC value
-                            $("#txtUPC").val("");
                         }
-                    });
+                        else {
+                            $("#spnBalance").text(($("#txtVendorTotal").val() - numTotalCost).toFixed(2));
+                        }
 
+                        // Add the product to the invoice
+                        $("#divItemsCard").append(`
+                                            <div class="card p-2 mb-2">
+                                                <div class="d-flex justify-content-between align-items-center cardHeader">
+                                                    <div>
+                                                        <p class="fw-bold m-0">${upc}</p>
+                                                        <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
+                                                    </div>
+                                                    <div class="d-flex flex-column justify-content-between h-100">
+                                                        <button type="button" class="btnEdit btn p-0 shadow-none"><i
+                                                                class="fa-regular fa-pen-to-square"></i></button>
+                                                        <i class="chevron fa-solid fa-chevron-down"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="dropdownContent" style="display: none;">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="d-flex flex-column align-items-start">
+                                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
+                                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
+                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                        </div>
+                                                        <div class="d-flex flex-column align-items-end">
+                                                            <p class="m-0">Department: ${dept_name}</p>
+                                                            <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                                            <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `);
+                        //clear txtUPC value
+                        $("#txtUPC").val("");
+                    }
                 } catch (error) {
                     Swal.fire({
                         heightAuto: false,
@@ -439,17 +700,20 @@
                                 arrCounts.splice(index, 1);
 
                                 if (arrUPCs.length === 0) {
-                                    $("#txtVendor").prop('disabled', false);
                                     $("#spnTotalGrossMargin").text("0.00");
+                                    $("#spnTotalCost").text("0.00");
+                                    $("#spnTotalRetail").text("0.00");
+                                    numTotalCost = 0;
+                                    numTotalRetail = 0;
                                 }
                                 else {
                                     $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+                                    $("#spnTotalCost").text(numTotalCost.toFixed(2));
+                                    $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
                                 }
 
                                 // Update the total units, cost, retail, and gross margin in the UI
                                 $("#spnTotalUnits").text(numTotalUnits);
-                                $("#spnTotalCost").text(numTotalCost.toFixed(2));
-                                $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
                                 if ($("#txtVendorTotal").val() === '') {
                                     if (numTotalCost === 0) {
                                         $("#spnBalance").text((0.00).toFixed(2));
@@ -545,21 +809,14 @@
                                 heightAuto: false,
                                 icon: 'success',
                                 title: 'Success',
-                                text: 'Invoice saved successfully'
+                                text: 'Invoice created successfully'
                             });
                         } else if (response.duplicate) {
                             Swal.fire({
                                 heightAuto: false,
                                 icon: 'warning',
                                 title: "Invoice already exists",
-                                text: 'Do you want to update the existing invoice? Type the invoice number to confirm',
-                                input: 'text',
-                                inputPlaceholder: 'Type the invoice number to confirm',
-                                inputValidator: (value) => {
-                                    if (value !== strInvoiceNumber) {
-                                        return 'You need to type the invoice number to confirm';
-                                    }
-                                },
+                                text: 'Do you want to update the existing invoice?',
                                 showCancelButton: true,
                                 confirmButtonText: 'Confirm',
                                 cancelButtonText: 'Cancel'
@@ -586,7 +843,7 @@
                                                     heightAuto: false,
                                                     icon: 'success',
                                                     title: 'Success',
-                                                    text: 'Invoice saved successfully'
+                                                    text: 'Invoice updated successfully'
                                                 });
                                             }
                                         },
