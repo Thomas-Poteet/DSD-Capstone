@@ -123,6 +123,21 @@
             arrUPCs = [];
             arrCounts = [];
 
+            // Fill in the invoice number and vendor if they are in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const strInvoiceNumber = decodeURIComponent(urlParams.get('invoiceNumber'));
+            const strVendor = decodeURIComponent(urlParams.get('vendor'));
+            if (strInvoiceNumber !== "null" && strVendor !== "null") {
+                $("#txtInvoiceNumber").val(strInvoiceNumber);
+                $("#txtVendor").val(strVendor);
+                $(window).on('load', function () {
+                    $("#btnFill").click();
+                });
+                // Clear the parameters from the URL
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
             // Clear all inputs and arrays when the Clear button is pressed
             $("#btnClear").on("click", function () {
                 if ($("#spnTitle").text() === "Create") {
