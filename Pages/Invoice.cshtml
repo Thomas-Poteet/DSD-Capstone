@@ -251,9 +251,8 @@
                                             <i class="chevron fa-solid fa-chevron-down"></i>
                                         </div>
                                     </div>
-                                    <div class="dropdownContent" style="display: none;">
-                                        <div class="d-flex justify-content-between mt-2">
-                                            <div>
+                                    <div class="dropdownContent d-flex justify-content-between" style="display: none;">
+                                        <div class="d-flex flex-column align-items-start">
                                             <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
                                             <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
                                             <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
@@ -382,7 +381,7 @@
                         const numDifference = numItemCount - numPrevItemCount;
 
                         const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
-                        const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(3).text().split("$")[1]);
+                        const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
 
                         // Update the total units, cost, and retail
                         numTotalUnits += numDifference;
@@ -412,7 +411,7 @@
                         // Update the dropdown content with the new item count and totals
                         $(this).closest('.cardHeader').find('p').eq(1).text(`${strItemName} - ${numItemCount}`);
                         $(this).closest('.card').find('.dropdownContent p').eq(1).text(`Total Cost: $${(numItemCost * numItemCount).toFixed(2)}`);
-                        $(this).closest('.card').find('.dropdownContent p').eq(4).text(`Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}`);
+                        $(this).closest('.card').find('.dropdownContent p').eq(5).text(`Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}`);
                     }
                     else if (result.isDenied) {
                         // confirm the user want to Delete the item
@@ -428,7 +427,7 @@
                                 const strUPC = $(this).closest('.cardHeader').find('p').eq(0).text();
                                 const numItemCount = parseInt($(this).closest('.cardHeader').find('p').eq(1).text().split(" - ")[1]);
                                 const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
-                                const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(3).text().split("$")[1]);
+                                const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
 
                                 // Update the total units, cost, and retail
                                 numTotalUnits -= numItemCount;
