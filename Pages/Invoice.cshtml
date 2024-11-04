@@ -304,6 +304,9 @@
                 const strInvoiceNumber = $("#txtInvoiceNumber").val();
                 const strDate = $("#txtDate").val();
                 const numVendorTotal = $("#txtVendorTotal").val();
+                const numRetailTotal = parseFloat($("#spnTotalRetail").text());
+                const numGross = parseFloat($("#spnTotalGrossMargin").text());
+                //const numRetailTotal = $("txtRetailTotal").val()
                 const numBalance = parseFloat($("#spnBalance").text());
 
                 // If any of the inputs are empty, show an error message and return
@@ -344,14 +347,14 @@
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal);
+                            saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross);
                         } else if (result.dismiss === Swal.DismissReason.cancel) {
                             return;
                         }
                     });
                 }
                 else {
-                    saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal);
+                    saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross);
                 }
             });
 
@@ -541,7 +544,7 @@
                     return `${year}-${month}-${day}`;
                 }
 
-            function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal) {
+            function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross) {
                 $.ajax({
                     url: '/Invoice',
                     method: 'POST',
@@ -550,6 +553,8 @@
                         VendorName: strVendor,
                         Date: strDate,
                         VendorTotal: parseFloat(numVendorTotal),
+                        RetailTotal: parseFloat(numRetailTotal),
+                        Gross: parseFloat(numGross),
                         UPCs: arrUPCs,
                         Counts: arrCounts
                     },
