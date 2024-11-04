@@ -139,23 +139,6 @@
                     }
                 });
 
-                // Add arrow icon to each row's first cell
-                $('#invoiceTable tbody').on('click', 'td.dt-control', function () {
-                    const tr = $(this).closest('tr');
-                    const row = table.row(tr);
-
-                    if (row.child.isShown()) {
-                        // Close row details
-                        row.child.hide();
-                        tr.removeClass('shown');
-                        $(this).html('<i class="bi bi-chevron-right"></i>'); // Reset arrow icon to right
-                    } else {
-                        // Show row details with Edit and Print buttons in dropdown
-                        row.child(formatRowDetails(row.data())).show();
-                        tr.addClass('shown');
-                        $(this).html('<i class="bi bi-chevron-down"></i>'); // Set arrow icon to down
-                    }
-                });
 
                 // Event handler for the "Search" button
                 $('#btnSearch').on('click', function() {
@@ -191,6 +174,24 @@
                     $('#txtVendor').val('').prop('disabled', false);
                     $('#txtStartDate').val('').prop('disabled', false);
                     $('#txtEndDate').val('').prop('disabled', false);
+                });
+
+                // Add arrow icon to each row's first cell
+                $('#invoiceTable tbody').on('click', 'td.dt-control', function () {
+                    const tr = $(this).closest('tr');
+                    const row = table.row(tr);
+
+                    if (row.child.isShown()) {
+                        // Close row details
+                        row.child.hide();
+                        tr.removeClass('shown');
+                        $(this).html('<i class="bi bi-chevron-right"></i>'); // Reset arrow icon to right
+                    } else {
+                        // Show row details with Edit and Print buttons in dropdown
+                        row.child(formatRowDetails(row.data())).show();
+                        tr.addClass('shown');
+                        $(this).html('<i class="bi bi-chevron-down"></i>'); // Set arrow icon to down
+                    }
                 });
 
                 // Fetch vendor_no from name
@@ -261,7 +262,6 @@
                 });
             }
                 
-
                 // Update the DataTable with the retrieved invoices
                 function updateTable(invoices, vendorId = "") {
                     if (invoices.length === 0) {
