@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using System.Security.Claims;
 
 namespace DSD_Capstone.Pages;
@@ -58,6 +59,7 @@ public class InvoiceModel(MyDbContext context) : PageModel
             Date = DateOnly.Parse(request.Date),
             vendor_total = request.VendorTotal,
             retail_total = request.RetailTotal,
+            gross = request.Gross,
             InvoiceProducts = []
         };
 
@@ -90,6 +92,8 @@ public class InvoiceModel(MyDbContext context) : PageModel
         public required string VendorName { get; set; }
         public required string Date { get; set; }
         public required decimal VendorTotal { get; set; }
+        public required decimal RetailTotal { get; set; }
+        public required decimal Gross { get; set; }
         public required string[] UPCs { get; set; }
         public required int[] Counts { get; set; }
     }

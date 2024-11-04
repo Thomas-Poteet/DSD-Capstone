@@ -39,6 +39,7 @@ public class MyDbContext : DbContext
             .Property(i => i.vendor_total)
             .HasColumnType("money");
 
+        
         modelBuilder.Entity<Invoice>()
             .Property(i => i.retail_total)
             .HasColumnType("money");
@@ -46,6 +47,7 @@ public class MyDbContext : DbContext
         modelBuilder.Entity<Invoice>()
             .Property(i => i.gross)
             .HasColumnType("money");
+        
             
         //sets the Department entity's primary key as composite
         modelBuilder.Entity<Department>()
