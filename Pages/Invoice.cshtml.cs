@@ -60,6 +60,7 @@ public class InvoiceModel(MyDbContext context) : PageModel
             vendor_total = request.VendorTotal,
             retail_total = request.RetailTotal,
             gross = request.Gross,
+            count_total = request.CountTotal,
             InvoiceProducts = []
         };
 
@@ -93,7 +94,8 @@ public class InvoiceModel(MyDbContext context) : PageModel
         public required string Date { get; set; }
         public required decimal VendorTotal { get; set; }
         public required decimal RetailTotal { get; set; }
-        public required decimal Gross { get; set; }
+        public required double Gross { get; set; }
+        public required int CountTotal { get; set; }
         public required string[] UPCs { get; set; }
         public required int[] Counts { get; set; }
     }

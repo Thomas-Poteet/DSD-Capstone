@@ -236,6 +236,7 @@
                             if (arrUPCs.length === 1) {
                                 $("#txtVendor").prop('disabled', true);
                             }
+                            console.log(arrCounts.length);
 
                             // Update the total units, cost, and retail in the UI
                             $("#spnTotalUnits").text(numTotalUnits);
@@ -309,6 +310,16 @@
                 //const numRetailTotal = $("txtRetailTotal").val()
                 const numBalance = parseFloat($("#spnBalance").text());
 
+                console.log(arrCounts[0]);
+                var numTotalCount = 0.0;
+                var i = 0;
+                while (i < arrCounts.length)
+                {
+                    numTotalCount += arrCounts[i];
+                    i = i + 1;
+                };
+                console.log(numTotalCount);  
+
                 // If any of the inputs are empty, show an error message and return
                 if (strVendor === "" || strInvoiceNumber === "" || strDate === "" || numVendorTotal === "") {
                     Swal.fire({
@@ -347,14 +358,14 @@
                         cancelButtonText: 'No'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross);
+                            saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross, numTotalCount);
                         } else if (result.dismiss === Swal.DismissReason.cancel) {
                             return;
                         }
                     });
                 }
                 else {
-                    saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross);
+                    saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross, numTotalCount);
                 }
             });
 
@@ -544,7 +555,7 @@
                     return `${year}-${month}-${day}`;
                 }
 
-            function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross) {
+            function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross, numTotalCount) {
                 $.ajax({
                     url: '/Invoice',
                     method: 'POST',
@@ -554,7 +565,8 @@
                         Date: strDate,
                         VendorTotal: parseFloat(numVendorTotal),
                         RetailTotal: parseFloat(numRetailTotal),
-                        Gross: parseFloat(numGross),
+                        Gross: numGross,
+                        CountTotal: numTotalCount,
                         UPCs: arrUPCs,
                         Counts: arrCounts
                     },

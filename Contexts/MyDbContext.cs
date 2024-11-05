@@ -44,7 +44,7 @@ public class MyDbContext : DbContext
             .Property(i => i.retail_total)
             .HasColumnType("money");
 
-            
+
         //sets the Department entity's primary key as composite
         modelBuilder.Entity<Department>()
             .HasKey(d => new { d.dept_no, d.dept_sub });
