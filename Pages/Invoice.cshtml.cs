@@ -110,6 +110,9 @@ public class InvoiceModel(MyDbContext context) : PageModel
             invoice.vendor_no = vendor_no;
             invoice.Date = DateOnly.Parse(request.Date);
             invoice.vendor_total = request.VendorTotal;
+            invoice.retail_total = request.RetailTotal;
+            invoice.gross = request.Gross;
+            invoice.count_total = request.CountTotal;
 
             // Update the products in the invoice or remove them if they are not in the request
             var matchingProducts = await db.InvoiceProducts
@@ -163,6 +166,9 @@ public class InvoiceModel(MyDbContext context) : PageModel
                 vendor_no = vendor_no,
                 Date = DateOnly.Parse(request.Date),
                 vendor_total = request.VendorTotal,
+                retail_total = request.RetailTotal,
+                gross = request.Gross,
+                count_total = request.CountTotal,
                 InvoiceProducts = []
             };
 
@@ -197,6 +203,9 @@ public class InvoiceModel(MyDbContext context) : PageModel
         public required string VendorName { get; set; }
         public required string Date { get; set; }
         public required decimal VendorTotal { get; set; }
+        public required decimal RetailTotal { get; set; }
+        public required double Gross { get; set; }
+        public required int CountTotal { get; set; }
         public required string[] UPCs { get; set; }
         public required int[] Counts { get; set; }
         public required bool Update { get; set; }
