@@ -159,6 +159,15 @@
                     $('#txtStartDate').val('').prop('disabled', false);
                     $('#txtEndDate').val('').prop('disabled', false);
                 });
+                
+                // Sends invoice info to invoice page for the user to edit
+                $('#invoiceTable tbody').on('click', '.btnEditInvoice', function() {
+                    const row = table.row($(this).closest('tr')).data();
+                    invoiceID = decodeHtmlEntities(row[0]);
+                    vendor = decodeHtmlEntities(row[1]);
+
+                    window.location.href = `/invoice?invoiceNumber=${encodeURIComponent(invoiceID)}&vendor=${encodeURIComponent(vendor)}`;
+                });
 
                 // Fetch vendor_no from name
                 function fetchInvoicesByVendor(vendorId) {
@@ -255,7 +264,7 @@
                                         <td>${employee.firstName} ${employee.lastName}</td>
                                         <td>${invoice.date}</td>
                                         <td>
-                                            <button id="btnEditInvoice" class="btn btn-secondary">Edit</button>
+                                            <button class="btnEditInvoice btn btn-secondary">Edit</button>
                                             <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
                                         </td>
                                     </tr>
@@ -291,6 +300,13 @@
                         title: 'Error',
                         text: message
                     });
+                }
+
+                // Decodes HTML entities in a string
+                function decodeHtmlEntities(text) {
+                    const textArea = document.createElement('textarea');
+                    textArea.innerHTML = text;
+                    return textArea.value;
                 }
 
                 // Event handler for the "Logout" button
