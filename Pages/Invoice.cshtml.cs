@@ -110,6 +110,9 @@ public class InvoiceModel(MyDbContext context) : PageModel
             invoice.vendor_no = vendor_no;
             invoice.Date = DateOnly.Parse(request.Date);
             invoice.vendor_total = request.VendorTotal;
+            invoice.retail_total = request.RetailTotal;
+            invoice.gross = request.Gross;
+            invoice.count_total = request.CountTotal;
 
             // Update the products in the invoice or remove them if they are not in the request
             var matchingProducts = await db.InvoiceProducts
