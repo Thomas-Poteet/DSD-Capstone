@@ -193,6 +193,15 @@
                     $('#txtStartDate').val('').prop('disabled', false);
                     $('#txtEndDate').val('').prop('disabled', false);
                 });
+                
+                // Sends invoice info to invoice page for the user to edit
+                $('#invoiceTable tbody').on('click', '.btnEditInvoice', function() {
+                    const row = table.row($(this).closest('tr')).data();
+                    invoiceID = decodeHtmlEntities(row[0]);
+                    vendor = decodeHtmlEntities(row[1]);
+
+                    window.location.href = `/invoice?invoiceNumber=${encodeURIComponent(invoiceID)}&vendor=${encodeURIComponent(vendor)}`;
+                });
 
                 // Fetch vendor_no from name
                 function fetchInvoicesByVendor(vendorId) {
@@ -360,6 +369,13 @@
                         title: 'Error',
                         text: message
                     });
+                }
+
+                // Decodes HTML entities in a string
+                function decodeHtmlEntities(text) {
+                    const textArea = document.createElement('textarea');
+                    textArea.innerHTML = text;
+                    return textArea.value;
                 }
 
                 // Event handler for the "Logout" button

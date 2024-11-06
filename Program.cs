@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Namotion.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -194,6 +195,22 @@ app.MapGet("/Invoices/{InvoiceID}", async (MyDbContext dbContext, string Invoice
 })
 .WithName("GetInvoiceByID");
 
+
+//get call to fetch any allowances for a product by current date
+app.MapGet("/Allowances/{upc}/{vendor_no}", async (MyDbContext dbContext, string upc, int vendor_no) => {
+    var currentDate = DateTime.Now.Date;
+    var conn = await dbContext.Allowances
+        .Where(a => currentDate >= a.start_date && currentDate <= a.end_date && upc == a.upc && vendor_no == a.vendor_no)
+        .ToListAsync();
+    if (conn == null)
+    {
+        return Results.NotFound("No allowances");
+    }
+    else{
+        return Results.Ok(conn);
+    }
+});
+
 //Get call to fetch Invoices from a date range
 app.MapGet("/InvoicesByDate/{start}/{end}", async (MyDbContext dbContext, DateOnly start, DateOnly end) => {
     var invoices = await dbContext.Invoices
@@ -212,7 +229,9 @@ app.MapGet("/InvoicesByDate/{start}/{end}", async (MyDbContext dbContext, DateOn
         Date = conn.Date,
         emp_no = conn.emp_no,
         vendor_no = conn.vendor_no,
-        vendor_total = conn.vendor_total
+        vendor_total = conn.vendor_total,
+        retail_total = conn.retail_total,
+        gross = conn.gross
     }));
 })
 .WithName("GetInvoicesByDate");
@@ -239,6 +258,7 @@ app.MapGet("/InvoicesByVendor/{vendor_no}", async (MyDbContext dbContext, int ve
     }));
 })
 .WithName("GetInvoicesByVendor");
+
 
 
 //Post to create a new product
