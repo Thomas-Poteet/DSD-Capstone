@@ -231,7 +231,8 @@ app.MapGet("/InvoicesByDate/{start}/{end}", async (MyDbContext dbContext, DateOn
         vendor_no = conn.vendor_no,
         vendor_total = conn.vendor_total,
         retail_total = conn.retail_total,
-        gross = conn.gross
+        gross = conn.gross,
+        count_total = conn.count_total
     }));
 })
 .WithName("GetInvoicesByDate");
@@ -254,7 +255,10 @@ app.MapGet("/InvoicesByVendor/{vendor_no}", async (MyDbContext dbContext, int ve
         Date = conn.Date,
         emp_no = conn.emp_no,
         vendor_no = conn.vendor_no,
-        vendor_total = conn.vendor_total
+        vendor_total = conn.vendor_total,
+        retail_total = conn.retail_total,
+        gross = conn.gross,
+        count_total = conn.count_total
     }));
 })
 .WithName("GetInvoicesByVendor");

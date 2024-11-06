@@ -16,6 +16,16 @@
             transform: translateY(1px);
             box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
         }
+        .dt-control {
+            cursor: pointer;
+            text-align: center;
+            width: 30px; /* Adjust as needed */
+        }
+        body {
+            max-height: 100vh;
+            overflow: auto;
+            margin: 0; /* Ensures no extra space due to margins */
+        }
     </style>
     <link rel="stylesheet" href="~/css/datatables.min.css" />
 </head>
@@ -68,16 +78,16 @@
     <hr>
 
     <!-- Invoices Table -->
-    <div class="container mt-3">
+    <div style="max-width: 90%;">
         <table id="invoiceTable" class="table table-bordered">
             <thead>
                 <tr>
+                    <th></th>
                     <th>Invoice Number</th>
                     <th>Vendor</th>
                     <th>Total</th>
                     <th>Employee</th>
                     <th>Date</th>
-                    <th>Edit/Print</th>
                 </tr>
             </thead>
             <tbody>
@@ -112,16 +122,49 @@
                 });
 
                 // Initial DataTable setup
-                let table = $('#invoiceTable').DataTable({
+                  let table = $('#invoiceTable').DataTable({
                     dom: 'Bfrtip',
-                    buttons: [],
+                    buttons: [
+                        {
+                            extend: 'print',
+                            text: 'Print',
+                            class: 'btn-primary buttonPress'
+                        }
+                    ],
+                    columnDefs: [
+                        { orderable: false, className: 'dt-control', targets: 0 }  // Arrow column
+                    ],
                     searching: true,
                     fixedHeader: true,
-                    responsive: true,
-                    scrollY: 400,
-                    scrollCollapse: true,
+                    scrollY: '50vh',
                     stateSave: true,
-                    selection: true
+                    select: {
+                        style: 'os',
+                        selector: 'td:first-child',
+                        blurable: true
+                    }
+                });
+
+                // Add arrow icon to each row's first cell
+                $('#invoiceTable tbody').on('click', 'td.dt-control', function () {
+                    const tr = $(this).closest('tr');
+                    const row = table.row(tr);
+                    if (row.child.isShown()) {
+                        // Close row details
+                        row.child.hide();
+                        tr.removeClass('shown');
+                        $(this).html('<i class="bi bi-chevron-right"></i>'); // Reset arrow icon to right
+                    } else {
+                        // Show row details with Edit and Print buttons in dropdown
+                        const retail_total = tr.data('retail');
+                        const gross = tr.data('gross');
+                        const margin = tr.data('margin');
+                        const count_total = tr.data('count');
+                        const cost = row.data()[3];
+                        row.child(formatRowDetails(retail_total, gross, margin, count_total, cost)).show();
+                        tr.addClass('shown');
+                        $(this).html('<i class="bi bi-chevron-down"></i>'); // Set arrow icon to down
+                    }
                 });
 
                 // Event handler for the "Search" button
@@ -160,13 +203,22 @@
                     $('#txtEndDate').val('').prop('disabled', false);
                 });
                 
-                // Sends invoice info to invoice page for the user to edit
-                $('#invoiceTable tbody').on('click', '.btnEditInvoice', function() {
-                    const row = table.row($(this).closest('tr')).data();
-                    invoiceID = decodeHtmlEntities(row[0]);
-                    vendor = decodeHtmlEntities(row[1]);
+                // Handles clicks on the "Edit" and "Print" buttons in the expandable row details
+                $('#invoiceTable tbody').on('click', '#btnEditInvoice, #btnPrintInvoice', function() {
+                    // Find the parent row of the expanded details section
+                    const tr = $(this).closest('tr').prev(); // Locate the main row of the expanded child row
+                    const rowData = table.row(tr).data(); // Get the original row data
 
-                    window.location.href = `/invoice?invoiceNumber=${encodeURIComponent(invoiceID)}&vendor=${encodeURIComponent(vendor)}`;
+                    const invoiceID = decodeHtmlEntities(rowData[1]); // Use the correct data index for invoiceID
+                    const vendor = decodeHtmlEntities(rowData[2]); // Use the correct data index for vendor
+
+                    if ($(this).is('#btnEditInvoice')) {
+                        // Navigate to the edit invoice page
+                        window.location.href = `/invoice?invoiceNumber=${encodeURIComponent(invoiceID)}&vendor=${encodeURIComponent(vendor)}`;
+                    } else if ($(this).is('#btnPrintInvoice')) {
+                        // Handle print action
+                        window.print(); // Or use a more specific print function as needed
+                    }
                 });
 
                 // Fetch vendor_no from name
@@ -182,6 +234,7 @@
                                 url: `/InvoicesByVendor/${vendor_no}`,
                                 method: 'GET',
                                 success: function(invoices) {
+
                                     updateTable(invoices, vendorId);
                                 },
                                 error: function() {
@@ -256,17 +309,20 @@
                             url: `/Employees/${invoice.emp_no}`,
                             method: 'GET',
                             success: function(employee) {
+                                console.log(invoice);
                                 const invoiceRow = `
-                                    <tr>
+                                    <tr data-retail="${invoice.retail_total}" 
+                                        data-gross="${invoice.gross}" 
+                                        data-margin="${(invoice.retail_total - invoice.vendor_total).toFixed(2)}" 
+                                        data-count="${invoice.count_total}">
+
+                                        <td class="dt-control"><i class="bi bi-chevron-right"></i></td>
                                         <td>${invoice.invoiceID}</td>
                                         <td>${vendorId || invoice.vendor}</td>
                                         <td>$${invoice.vendor_total}</td>
                                         <td>${employee.firstName} ${employee.lastName}</td>
                                         <td>${invoice.date}</td>
-                                        <td>
-                                            <button class="btnEditInvoice btn btn-secondary">Edit</button>
-                                            <button id="btnPrintInvoice" class="btn btn-secondary">Print</button>
-                                        </td>
+
                                     </tr>
                                 `;
                                 $('#invoiceTable tbody').append(invoiceRow);
@@ -281,16 +337,48 @@
                     Promise.all(invoicePromises).then(() => {
                         table = $('#invoiceTable').DataTable({
                             dom: 'Bfrtip',
-                            buttons: [],
+                            buttons: [
+                                {
+                                    extend: 'print',
+                                    text: 'Print',
+                                    className: 'btn btn-dark buttonPress'
+                                }
+                            ],
+                            columnDefs: [
+                                { orderable: false, className: 'dt-control', targets: 0 }  // Arrow column
+                            ],
                             searching: true,
                             fixedHeader: true,
-                            responsive: true,
-                            scrollY: 400,
-                            scrollCollapse: true,
+                            scrollY: '50vh',
                             stateSave: true,
-                            selection: true
+                            select: {
+                                style: 'os',
+                                selector: 'td:first-child',
+                                blurable: true
+                            }
                         });
                     });
+                }
+
+                // Function to format the details row with Edit/Print buttons
+                function formatRowDetails(retail, gross, margin, count, cost) {
+                    return `
+                        <div class="row p-3">
+                            <div class="col-md-6">
+                                <strong>Gross:</strong> $${gross} <br>
+                                <strong>Margin:</strong> $${margin}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Units:</strong> ${count} <br>
+                                <strong>Cost:</strong> ${cost} <br>
+                                <strong>Retail:</strong> $${retail}
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <button class="btn btn-secondary me-2" id="btnEditInvoice">Edit</button>
+                                <button class="btn btn-secondary" id="btnPrintInvoice">Print</button>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // Display error message
