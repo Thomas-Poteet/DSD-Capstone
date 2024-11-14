@@ -28,6 +28,7 @@
         }
     </style>
     <link rel="stylesheet" href="~/css/datatables.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/print.min.css" />
 </head>
 
 <body>
@@ -98,6 +99,7 @@
 
     @section Scripts {
         <script src="~/js/datatables.min.js"></script>
+        <script src="~/js/print.min.js"></script>
         <script>
             $(document).ready(function() {
                 $('#txtVendor').on('focus', function() {
@@ -209,17 +211,117 @@
                     const tr = $(this).closest('tr').prev(); // Locate the main row of the expanded child row
                     const rowData = table.row(tr).data(); // Get the original row data
 
-                    const invoiceID = decodeHtmlEntities(rowData[1]); // Use the correct data index for invoiceID
-                    const vendor = decodeHtmlEntities(rowData[2]); // Use the correct data index for vendor
+                    const retail_total = tr.data('retail');
+                    const gross = tr.data('gross');
+                    const margin = tr.data('margin');
+                    const count_total = tr.data('count');
+                    const vendor_no = tr.data('vendor_no');
+                    const invoiceID = decodeHtmlEntities(rowData[1]);
+                    const vendor = decodeHtmlEntities(rowData[2]); 
+                    const total = decodeHtmlEntities(rowData[3]); 
+                    const employee = decodeHtmlEntities(rowData[4]); 
+                    const date = decodeHtmlEntities(rowData[5]);
 
                     if ($(this).is('#btnEditInvoice')) {
                         // Navigate to the edit invoice page
                         window.location.href = `/invoice?invoiceNumber=${encodeURIComponent(invoiceID)}&vendor=${encodeURIComponent(vendor)}`;
                     } else if ($(this).is('#btnPrintInvoice')) {
-                        // Handle print action
-                        window.print(); // Or use a more specific print function as needed
+                        // Fetch Products and handle print action
+                        $.ajax({
+                            url: '/Invoice?handler=FillInvoice',
+                            method: 'GET',
+                            data: {
+                                vendorName: vendor,
+                                invoiceID: invoiceID
+                            },
+                            success: function (response) {
+                                console.log(response);
+                                // Retrieve each products details
+                                const productInfo = response.arrUPCs.map((upc) => {
+                                    return $.ajax({
+                                        url: `/products/${upc}`,
+                                        method: 'GET'
+                                    });
+                                });
+                                const productCost = response.arrUPCs.map((upc) => {
+                                    return $.ajax({
+                                        url: `/vendorsProducts/${upc}/${vendor_no}`,
+                                        method: 'GET'
+                                    });
+                                });
+                                console.log(productInfo);
+                                console.log(productCost); 
+                                printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response);
+                            },
+                            error: function () {
+                                showError('Error fetching invoice details.');
+                            }
+                        });
                     }
                 });
+
+                // Function to generate invoice layout and print
+                function printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response) {
+                    // Create the invoice HTML layout with a header and product list section
+                    const invoiceHTML = `
+                        <div style="font-family: Arial, sans-serif; margin: 20px;">
+                            <!-- Header Section -->
+                            <div style="border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+                                <!-- Left Side: Invoice ID and Vendor -->
+                                <div>
+                                    <h2 style="margin: 0;">Invoice #${invoiceID}</h2>
+                                    <p style="margin: 5px 0;"><strong>Vendor:</strong> ${vendor}</p>
+                                    <p style="margin: 5px 0;"><strong>Total Cost:</strong> ${total}</p>
+                                </div>
+
+                                <!-- Right Side: Date and Employee -->
+                                <div style="text-align: right;">
+                                    <p style="margin: 5px 0;"><strong>Date:</strong> ${date}</p>
+                                    <p style="margin: 5px 0;"><strong>Employee:</strong> ${employee}</p>
+                                </div>
+                            </div>
+                            <!-- Products Section -->
+                            <div>
+                                <h2>Products</h2>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Product</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Quantity</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Price</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                       
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Footer Section -->
+                            <div style="margin-top: 20px; font-size: 14px; text-align: right;">
+                                <p><strong>Retail Total:</strong> $${retail_total}</p>
+                                <p><strong>Gross:</strong> $${gross}</p>
+                                <p><strong>Margin:</strong> $${margin}</p>
+                                <p><strong>Units:</strong> ${count_total}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // Print the invoice with Print.js
+                    printJS({
+                        printable: invoiceHTML,
+                        type: 'raw-html',
+                        style: `
+                            body { font-family: Arial, sans-serif; color: #333; }
+                            h2 { color: #333; }
+                            table { width: 100%; border-collapse: collapse; }
+                            th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+                            th { background-color: #f0f0f0; }
+                        `,
+                        header: '<h1>Invoice</h1>'
+                    });
+                }
 
                 // Fetch vendor_no from name
                 function fetchInvoicesByVendor(vendorId) {
@@ -314,7 +416,8 @@
                                     <tr data-retail="${invoice.retail_total}" 
                                         data-gross="${invoice.gross}" 
                                         data-margin="${(invoice.retail_total - invoice.vendor_total).toFixed(2)}" 
-                                        data-count="${invoice.count_total}">
+                                        data-count="${invoice.count_total}"
+                                        data-vendor_no="${invoice.vendor_no}">
 
                                         <td class="dt-control"><i class="bi bi-chevron-right"></i></td>
                                         <td>${invoice.invoiceID}</td>
