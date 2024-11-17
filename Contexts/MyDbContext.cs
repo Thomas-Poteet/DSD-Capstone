@@ -49,10 +49,14 @@ public class MyDbContext : DbContext
 
         modelBuilder.Entity<Invoice>()
             .HasKey(i => new { i.InvoiceID, i.vendor_no });
+        
+        modelBuilder.Entity<ProductGroupDetail>()
+            .HasKey(pgd => new { pgd.PGCode, pgd.UPC });
 
         base.OnModelCreating(modelBuilder);
     }
     public DbSet<Department> Departments { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<InvoiceProduct> InvoiceProducts { get; set; }
+    public DbSet<ProductGroupDetail> ProductGroupDetails { get; set; }
 }
