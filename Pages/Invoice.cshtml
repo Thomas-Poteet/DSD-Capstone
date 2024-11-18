@@ -394,7 +394,7 @@
                         i++;
                     }
         
-
+                    const numItemAllowance = discount_total;
                     const dept_name = departmentResponse.dept_name;
                   
                     if (numItemCount == -1) {
@@ -435,10 +435,11 @@
                                 // Placeholder for item cost
                                 const numItemCost = vendor_cost;
                                 const numItemRetail = data.price;
+                                const numNetCost = numItemCost - numItemAllowance;
 
                                 // Update the total units, cost, retail, and add UPC to array
                                 numTotalUnits += numItemCount;
-                                numTotalCost += numItemCost * numItemCount;
+                                numTotalCost += numNetCost * numItemCount;
                                 numTotalRetail += numItemRetail * numItemCount;
                                 arrUPCs.push(upc);
                                 arrCounts.push(numItemCount);
@@ -480,14 +481,16 @@
                                                     <div class="dropdownContent" style="display: none;">
                                                         <div class="d-flex justify-content-between">
                                                             <div class="d-flex flex-column align-items-start">
-                                                                <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                                <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                                <p class="m-0">Cost:        $${numItemCost.toFixed(2)}</p>
+                                                                <p class="m-0">Allowance: - $${numItemAllowance.toFixed(2)}</p>
+                                                                <p class="m-0">Net Cost:    $${numNetCost.toFixed(2)}</p>
+                                                                <p class="m-0">Total Cost: $${(numNetCost * numItemCount).toFixed(2)}</p>
                                                             </div>
                                                             <div class="d-flex flex-column align-items-end">
                                                                 <p class="m-0">Department: ${dept_name}</p>
                                                                 <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                                 <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -503,10 +506,11 @@
                         // Placeholder for item cost
                         const numItemCost = vendor_cost;
                         const numItemRetail = data.price;
+                        const numNetCost = numItemCost - numItemAllowance;
 
                         // Update the total units, cost, retail, and add UPC to array
                         numTotalUnits += numItemCount;
-                        numTotalCost += numItemCost * numItemCount;
+                        numTotalCost += numNetCost * numItemCount;
                         numTotalRetail += numItemRetail * numItemCount;
                         arrUPCs.push(upc);
                         arrCounts.push(numItemCount);
@@ -548,14 +552,16 @@
                                                 <div class="dropdownContent" style="display: none;">
                                                     <div class="d-flex justify-content-between">
                                                         <div class="d-flex flex-column align-items-start">
-                                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                            <p class="m-0">Cost:        $${numItemCost.toFixed(2)}</p>
+                                                            <p class="m-0">Allowance: - $${numItemAllowance.toFixed(2)}</p>
+                                                            <p class="m-0">Net Cost:    $${numNetCost.toFixed(2)}</p>
+                                                            <p class="m-0">Total Cost: $${(numNetCost * numItemCount).toFixed(2)}</p>
                                                         </div>
                                                         <div class="d-flex flex-column align-items-end">
                                                             <p class="m-0">Department: ${dept_name}</p>
                                                             <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                             <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -687,8 +693,8 @@
                         const numItemCount = result.value;
                         const numDifference = numItemCount - numPrevItemCount;
 
-                        const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
-                        const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
+                        const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(2).text().split("$")[1]);
+                        const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
 
                         // Update the total units, cost, and retail
                         numTotalUnits += numDifference;
@@ -717,8 +723,8 @@
 
                         // Update the dropdown content with the new item count and totals
                         $(this).closest('.cardHeader').find('p').eq(1).text(`${strItemName} - ${numItemCount}`);
-                        $(this).closest('.card').find('.dropdownContent p').eq(1).text(`Total Cost: $${(numItemCost * numItemCount).toFixed(2)}`);
-                        $(this).closest('.card').find('.dropdownContent p').eq(5).text(`Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}`);
+                        $(this).closest('.card').find('.dropdownContent p').eq(3).text(`Total Cost: $${(numItemCost * numItemCount).toFixed(2)}`);
+                        $(this).closest('.card').find('.dropdownContent p').eq(6).text(`Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}`);
                     }
                     else if (result.isDenied) {
                         // confirm the user want to Delete the item
@@ -733,8 +739,8 @@
                             if (result.isConfirmed) {
                                 const strUPC = $(this).closest('.cardHeader').find('p').eq(0).text();
                                 const numItemCount = parseInt($(this).closest('.cardHeader').find('p').eq(1).text().split(" - ")[1]);
-                                const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
-                                const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
+                                const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(2).text().split("$")[1]);
+                                const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
 
                                 // Update the total units, cost, and retail
                                 numTotalUnits -= numItemCount;
