@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using System.Security.Claims;
 
 namespace DSD_Capstone.Pages;
@@ -144,6 +145,10 @@ public class InvoiceModel(MyDbContext context) : PageModel
                     continue;
                 }
                 var count = request.Counts[i];
+                var retail_cost = request.RetailCosts[i];
+                var allowances = request.Allowances[i];
+                var vendor_cost = request.VendorCosts[i];
+                var net_cost = request.NetCosts[i];
 
 
                 var newInvoiceProduct = new InvoiceProduct
@@ -152,6 +157,10 @@ public class InvoiceModel(MyDbContext context) : PageModel
                     upc = upc,
                     count = count,
                     vendor_no = vendor_no,
+                    retail_cost = retail_cost,
+                    allowances = allowances,
+                    vendor_cost = vendor_cost,
+                    net_cost = net_cost,
                     Invoice = invoice
                 };
                 db.InvoiceProducts.Add(newInvoiceProduct);
@@ -177,6 +186,10 @@ public class InvoiceModel(MyDbContext context) : PageModel
             {
                 var upc = request.UPCs[i];
                 var count = request.Counts[i];
+                var retail_cost = request.RetailCosts[i];
+                var allowances = request.Allowances[i];
+                var vendor_cost = request.VendorCosts[i];
+                var net_cost = request.NetCosts[i];
 
                 var newInvoiceProduct = new InvoiceProduct
                 {
@@ -184,6 +197,10 @@ public class InvoiceModel(MyDbContext context) : PageModel
                     upc = upc,
                     count = count,
                     vendor_no = vendor_no,
+                    retail_cost = retail_cost,
+                    allowances = allowances,
+                    vendor_cost = vendor_cost,
+                    net_cost = net_cost,
                     Invoice = newInvoice
                 };
                 newInvoice.InvoiceProducts.Add(newInvoiceProduct);
@@ -208,6 +225,10 @@ public class InvoiceModel(MyDbContext context) : PageModel
         public required int CountTotal { get; set; }
         public required string[] UPCs { get; set; }
         public required int[] Counts { get; set; }
+        public required decimal[] RetailCosts { get; set; }
+        public required decimal[] Allowances { get; set; }
+        public required decimal[] VendorCosts { get; set; }
+        public required decimal[] NetCosts { get; set; }
         public required bool Update { get; set; }
     }
 }
