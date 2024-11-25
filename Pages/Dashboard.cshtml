@@ -36,7 +36,7 @@
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <span>
-                <img src="~/images/scenic_logo.png" alt="Logo" width="100" height="100" class="d-inline-block align-text-top" style="border-radius: 25px; border: 2px solid #F8F9FA; padding: 20px;">
+                <img src="~/images/scenic_logo.PNG" alt="Logo" width="60" height="60" class="d-inline-block align-text-top">
             </span>
             <div>
                 <button id="btnCreateInvoice" class="btn btn-dark me-2">Create Invoice</button>
@@ -236,23 +236,7 @@
                             },
                             success: function (response) {
                                 console.log(response);
-                                // Retrieve each products details
-                                const productInfo = response.arrUPCs.map((upc) => {
-                                    return $.ajax({
-                                        url: `/products/${upc}`,
-                                        method: 'GET'
-                                    });
-                                });
-                                
-                                const productCost = response.arrUPCs.map((upc) => {
-                                    return $.ajax({
-                                        url: `/vendorsProducts/${upc}/${vendor_no}`,
-                                        method: 'GET'
-                                    });
-                                });
-                                console.log(productInfo);
-                                console.log(productCost); 
-                                printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, productInfo, productCost);
+                                printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response);
                             },
                             error: function () {
                                 showError('Error fetching invoice details.');
@@ -261,8 +245,61 @@
                     }
                 });
 
+                async function addExistingProduct(upc, count, vendor_cost, retail_cost, net_cost, allowance) {
+                try {
+                    const data = await $.ajax({
+                        url: `/products/${upc}`,
+                        method: 'GET'
+                    });
+
+                    const strItemName = data.name;
+                    const dept_no = data.department;
+
+                    const departmentResponse = await $.ajax({
+                        url: `/departments/${dept_no}`,
+                        method: 'GET'
+                    });
+                    const dept_name = departmentResponse.dept_name;
+                    const numItemCost = vendor_cost;
+                    const numItemRetail = retail_cost;
+                    const numNetCost = net_cost;
+                    const numVendorTotal = net_cost * count;
+                    const numItemCount = count;
+                    const numRetailTotal = retail_cost * count;
+                    const numItemAllowance = allowance;
+                    const numGross = (((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2);
+
+                    let productHtml = '';
+
+                    productHtml =`
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px;">${strItemName}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">${dept_name}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${numItemCount}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numItemCost}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numItemAllowance}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numNetCost}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numVendorTotal}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numItemRetail}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numRetailTotal}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${numGross}%</td>
+                        </tr>
+                    `;
+
+                    return productHtml;
+                
+                } catch (error) {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error fetching products from invoice'
+                    });
+                }
+            };
+
                 // Function to generate invoice layout and print
-                function printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, productInfo, productCost) {
+                async function printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response) {
                     // Create the invoice HTML layout with a header and product list section
                     const invoiceHTML = `
                         <div style="font-family: Arial, sans-serif; margin: 20px;">
@@ -284,26 +321,25 @@
                             <!-- Products Section -->
                             <div>
                                 <h2>Products</h2>
-                                <table style="width: 100%; border-collapse: collapse;">
+                                 <table id="printTable" style="width: 100%; border-collapse: collapse;">
                                     <thead>
                                         <tr style="background-color: #f0f0f0;">
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Product</th>
-                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">UPC</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Department</th>
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Quantity</th>
-                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Price</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Item</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Allowance</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Net</th>
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Total</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Item Retail</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Retail Total</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Gross</th>
+
                                         </tr>
                                     </thead>
+
                                     <tbody>
-                                        ${productInfo.map((product, index) => `
-                                            <tr>
-                                                <td style="border: 1px solid #ccc; padding: 8px;">${product.name}</td>
-                                                <td style="border: 1px solid #ccc; padding: 8px;">${product.UPC}</td>
-                                                <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${product.quantity}</td>
-                                                <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${productCost[index].price}</td>
-                                                <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${(product.quantity * productCost[index].price).toFixed(2)}</td>
-                                            </tr>
-                                        `).join('')}
+                                        
                                     </tbody>
                                 </table>
                             </div>
@@ -311,16 +347,35 @@
                             <!-- Footer Section -->
                             <div style="margin-top: 20px; font-size: 14px; text-align: right;">
                                 <p><strong>Retail Total:</strong> $${retail_total}</p>
-                                <p><strong>Gross:</strong> $${gross}</p>
+                                <p><strong>Total Cost:</strong> ${total}</p>
+                                <p><strong>Gross:</strong> ${gross}%</p>
                                 <p><strong>Margin:</strong> $${margin}</p>
                                 <p><strong>Units:</strong> ${count_total}</p>
                             </div>
                         </div>
                     `;
 
+                    // Convert the invoiceHTML string into a DOM element
+                    const $invoice = $(invoiceHTML);
+
+                    // Loop through the response data and append rows to the <tbody>
+                    for (let i = 0; i < response.arrUPCs.length; i++) {
+                        const rowHTML = await addExistingProduct(
+                            response.arrUPCs[i], 
+                            response.arrCounts[i], 
+                            response.arrVendorCost[i], 
+                            response.arrRetailCost[i], 
+                            response.arrNetCost[i], 
+                            response.arrAllowances[i]
+                        );
+                        console.log(rowHTML);
+
+                        // Append each row to the table's <tbody>
+                        $invoice.find("#printTable tbody").append(rowHTML);
+                    } 
                     // Print the invoice with Print.js
                     printJS({
-                        printable: invoiceHTML,
+                        printable: $invoice.html(),
                         type: 'raw-html',
                         style: `
                             body { font-family: Arial, sans-serif; color: #333; }
@@ -421,7 +476,6 @@
                             url: `/Employees/${invoice.emp_no}`,
                             method: 'GET',
                             success: function(employee) {
-                                console.log(invoice);
                                 const invoiceRow = `
                                     <tr data-retail="${invoice.retail_total}" 
                                         data-gross="${invoice.gross}" 
