@@ -64,14 +64,25 @@ public class InvoiceModel(MyDbContext context) : PageModel
                 .ToListAsync();
         var arrUPCs = Products.Select(p => p.upc).ToArray();
         var arrCounts = Products.Select(p => p.count).ToArray();
+        var arrAllowances = Products.Select(p => p.allowances).ToArray();
+        var arrRetailCost = Products.Select(p => p.retail_cost).ToArray();
+        var arrVendorCost = Products.Select(p => p.vendor_cost).ToArray();
+        var arrNetCost = Products.Select(p => p.net_cost).ToArray();
 
         return new JsonResult(new {
             success = true,
             duplicate = true,
             date = invoice.Date,
             vendorTotal = invoice.vendor_total,
+            retailTotal = invoice.retail_total,
+            grossTotal = invoice.gross,
+            countTotal = invoice.count_total,
             arrUPCs,
-            arrCounts
+            arrCounts,
+            arrAllowances,
+            arrRetailCost,
+            arrVendorCost,
+            arrNetCost
         });
     }
 
