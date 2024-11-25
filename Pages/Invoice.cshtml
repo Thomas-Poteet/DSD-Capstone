@@ -122,6 +122,11 @@
             numTotalRetail = 0;
             arrUPCs = [];
             arrCounts = [];
+            arrRetailCosts = [];
+            arrAllowances = [];
+            arrVendorCosts = [];
+            arrNetCosts = [];
+            
 
             // Fill in the invoice number and vendor if they are in the URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -183,6 +188,10 @@
                         numTotalRetail = 0;
                         arrUPCs = [];
                         arrCounts = [];
+                        arrAllowances = [];
+                        arrRetailCosts = [];
+                        arrVendorCosts = [];
+                        arrNetCosts = [];
                     }
                 });
             });
@@ -268,6 +277,7 @@
                     },
                     success: function (response) {
                         if (response.success) {
+                            console.log(response);
                             $("#btnFill").prop('disabled', true);
                             $("#txtVendor").prop('disabled', true);
                             $("#txtInvoiceNumber").prop('disabled', true);
@@ -280,9 +290,14 @@
                             } else {
                                 $("#spnTitle").text("Update");
                                 $("#txtDate").val(response.date);
+                                $("#spnTotalUnits").text(response.countTotal);
+                                $("#spnTotalCost").text(response.vendorTotal);
                                 $("#txtVendorTotal").val(response.vendorTotal);
+                                $("#spnTotalRetail").text(response.retailTotal);
+                                $("#spnTotalGrossMargin").text(response.grossTotal);
+                                $("#spnBalance").text((0.00).toFixed(2));
                                 for (let i = 0; i < response.arrUPCs.length; i++) {
-                                    addProduct(response.arrUPCs[i], response.arrCounts[i]);
+                                    addExistingProduct(response.arrUPCs[i], response.arrCounts[i], response.arrVendorCost[i], response.arrRetailCost[i], response.arrNetCost[i], response.arrAllowances[i]);
                                 }
                             }
                         } else {
@@ -303,7 +318,7 @@
                         });
                     }
                 });
-            })
+            });
 
             // Adds a the product with the UPC in the txtUPC input to the invoice when the Add Product button is pressed
             $("#btnAddProduct").on("click", function () {
@@ -347,6 +362,72 @@
                 //call the add product function to fetch product data and add it to invoice page
                 addProduct($("#txtUPC").val());
             });
+
+            //async function addProductCard()
+
+            async function addExistingProduct(upc, count, vendor_cost, retail_cost, net_cost, allowance) {
+                try {
+                    const data = await $.ajax({
+                        url: `/products/${upc}`,
+                        method: 'GET'
+                    });
+
+                    const strItemName = data.name;
+                    const dept_no = data.department;
+
+                    const departmentResponse = await $.ajax({
+                        url: `/departments/${dept_no}`,
+                        method: 'GET'
+                    });
+                    const dept_name = departmentResponse.dept_name;
+                    const numItemCost = vendor_cost;
+                    const numItemRetail = retail_cost;
+                    const numNetCost = net_cost;
+                    const numVendorTotal = net_cost * count;
+                    const numItemCount = count;
+                    const numRetailTotal = retail_cost * count;
+                    const numItemAllowance = allowance;
+
+                    $("#divItemsCard").append(`
+                                    <div class="card p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center cardHeader">
+                                            <div>
+                                                <p class="fw-bold m-0">${upc}</p>
+                                                <p class="fw-bold m-0">${strItemName} - ${numItemCount}</p>
+                                            </div>
+                                            <div class="d-flex flex-column justify-content-between h-100">
+                                                <button type="button" class="btnEdit btn p-0 shadow-none"><i
+                                                        class="fa-regular fa-pen-to-square"></i></button>
+                                                <i class="chevron fa-solid fa-chevron-down"></i>
+                                            </div>
+                                        </div>
+                                        <div class="dropdownContent" style="display: none;">
+                                            <div class="d-flex justify-content-between">
+                                                <div class="d-flex flex-column align-items-start">
+                                                    <p class="m-0">Cost:        $${numItemCost.toFixed(2)}</p>
+                                                    <p class="m-0">Allowance: - $${numItemAllowance.toFixed(2)}</p>
+                                                    <p class="m-0">Net Cost:    $${numNetCost.toFixed(2)}</p>
+                                                    <p class="m-0">Total Cost: $${(numNetCost * numItemCount).toFixed(2)}</p>
+                                                </div>
+                                                <div class="d-flex flex-column align-items-end">
+                                                    <p class="m-0">Department: ${dept_name}</p>
+                                                    <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
+                                                    <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                    <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `);
+                } catch (error) {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error fetching products from invoice'
+                    });
+                }
+            };
 
             async function addProduct(upc, numItemCount = -1) {
                 try {
@@ -394,7 +475,7 @@
                         i++;
                     }
         
-
+                    const numItemAllowance = discount_total;
                     const dept_name = departmentResponse.dept_name;
                   
                     if (numItemCount == -1) {
@@ -435,13 +516,18 @@
                                 // Placeholder for item cost
                                 const numItemCost = vendor_cost;
                                 const numItemRetail = data.price;
+                                const numNetCost = numItemCost - numItemAllowance;
 
                                 // Update the total units, cost, retail, and add UPC to array
                                 numTotalUnits += numItemCount;
-                                numTotalCost += numItemCost * numItemCount;
+                                numTotalCost += numNetCost * numItemCount;
                                 numTotalRetail += numItemRetail * numItemCount;
                                 arrUPCs.push(upc);
                                 arrCounts.push(numItemCount);
+                                arrRetailCosts.push(numItemRetail);
+                                arrAllowances.push(numItemAllowance);
+                                arrVendorCosts.push(numItemCost);
+                                arrNetCosts.push(numNetCost);
                                 if (arrUPCs.length === 1) {
                                     $("#txtVendor").prop('disabled', true);
                                 }
@@ -480,14 +566,16 @@
                                                     <div class="dropdownContent" style="display: none;">
                                                         <div class="d-flex justify-content-between">
                                                             <div class="d-flex flex-column align-items-start">
-                                                                <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                                <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                                <p class="m-0">Cost:        $${numItemCost.toFixed(2)}</p>
+                                                                <p class="m-0">Allowance: - $${numItemAllowance.toFixed(2)}</p>
+                                                                <p class="m-0">Net Cost:    $${numNetCost.toFixed(2)}</p>
+                                                                <p class="m-0">Total Cost: $${(numNetCost * numItemCount).toFixed(2)}</p>
                                                             </div>
                                                             <div class="d-flex flex-column align-items-end">
                                                                 <p class="m-0">Department: ${dept_name}</p>
                                                                 <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                                 <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -503,13 +591,18 @@
                         // Placeholder for item cost
                         const numItemCost = vendor_cost;
                         const numItemRetail = data.price;
+                        const numNetCost = numItemCost - numItemAllowance;
 
                         // Update the total units, cost, retail, and add UPC to array
                         numTotalUnits += numItemCount;
-                        numTotalCost += numItemCost * numItemCount;
+                        numTotalCost += numNetCost * numItemCount;
                         numTotalRetail += numItemRetail * numItemCount;
                         arrUPCs.push(upc);
                         arrCounts.push(numItemCount);
+                        arrRetailCosts.push(numItemRetail);
+                        arrAllowances.push(numItemAllowance);
+                        arrVendorCosts.push(numItemCost);
+                        arrNetCosts.push(numNetCost);
                         if (arrUPCs.length === 1) {
                             $("#txtVendor").prop('disabled', true);
                         }
@@ -548,14 +641,16 @@
                                                 <div class="dropdownContent" style="display: none;">
                                                     <div class="d-flex justify-content-between">
                                                         <div class="d-flex flex-column align-items-start">
-                                                            <p class="m-0">Cost: $${numItemCost.toFixed(2)}</p>
-                                                            <p class="m-0">Total Cost: $${(numItemCost * numItemCount).toFixed(2)}</p>
-                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                            <p class="m-0">Cost:        $${numItemCost.toFixed(2)}</p>
+                                                            <p class="m-0">Allowance: - $${numItemAllowance.toFixed(2)}</p>
+                                                            <p class="m-0">Net Cost:    $${numNetCost.toFixed(2)}</p>
+                                                            <p class="m-0">Total Cost: $${(numNetCost * numItemCount).toFixed(2)}</p>
                                                         </div>
                                                         <div class="d-flex flex-column align-items-end">
                                                             <p class="m-0">Department: ${dept_name}</p>
                                                             <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                             <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
+                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -584,15 +679,14 @@
                 const numGross = parseFloat($("#spnTotalGrossMargin").text());
                 const numBalance = parseFloat($("#spnBalance").text());
 
-                console.log(arrCounts[0]);
                 var numTotalCount = 0.0;
                 var i = 0;
+                //add up the total number of items 
                 while (i < arrCounts.length)
                 {
                     numTotalCount += arrCounts[i];
                     i = i + 1;
-                };
-                console.log(numTotalCount);  
+                }; 
 
                 // If any of the inputs are empty, show an error message and return
                 if (strVendor === "" || strInvoiceNumber === "" || strDate === "" || numVendorTotal === "") {
@@ -687,8 +781,8 @@
                         const numItemCount = result.value;
                         const numDifference = numItemCount - numPrevItemCount;
 
-                        const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
-                        const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
+                        const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(2).text().split("$")[1]);
+                        const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
 
                         // Update the total units, cost, and retail
                         numTotalUnits += numDifference;
@@ -717,8 +811,8 @@
 
                         // Update the dropdown content with the new item count and totals
                         $(this).closest('.cardHeader').find('p').eq(1).text(`${strItemName} - ${numItemCount}`);
-                        $(this).closest('.card').find('.dropdownContent p').eq(1).text(`Total Cost: $${(numItemCost * numItemCount).toFixed(2)}`);
-                        $(this).closest('.card').find('.dropdownContent p').eq(5).text(`Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}`);
+                        $(this).closest('.card').find('.dropdownContent p').eq(3).text(`Total Cost: $${(numItemCost * numItemCount).toFixed(2)}`);
+                        $(this).closest('.card').find('.dropdownContent p').eq(6).text(`Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}`);
                     }
                     else if (result.isDenied) {
                         // confirm the user want to Delete the item
@@ -733,8 +827,8 @@
                             if (result.isConfirmed) {
                                 const strUPC = $(this).closest('.cardHeader').find('p').eq(0).text();
                                 const numItemCount = parseInt($(this).closest('.cardHeader').find('p').eq(1).text().split(" - ")[1]);
-                                const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
-                                const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
+                                const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(2).text().split("$")[1]);
+                                const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
 
                                 // Update the total units, cost, and retail
                                 numTotalUnits -= numItemCount;
@@ -744,6 +838,10 @@
                                 const index = arrUPCs.indexOf(strUPC);
                                 arrUPCs.splice(index, 1);
                                 arrCounts.splice(index, 1);
+                                arrRetailCosts.splice(index, 1);
+                                arrAllowances.splice(index, 1);
+                                arrVendorCosts.splice(index, 1);
+                                arrNetsCosts.splice(index, 1);
 
                                 if (arrUPCs.length === 0) {
                                     $("#spnTotalGrossMargin").text("0.00");
@@ -847,6 +945,10 @@
                         CountTotal: numTotalCount,
                         UPCs: arrUPCs,
                         Counts: arrCounts,
+                        RetailCosts: arrRetailCosts,
+                        Allowances: arrAllowances,
+                        VendorCosts: arrVendorCosts,
+                        NetCosts: arrNetCosts,
                         Update: false
                     },
                     headers: {
@@ -884,6 +986,10 @@
                                             CountTotal: numTotalCount,
                                             UPCs: arrUPCs,
                                             Counts: arrCounts,
+                                            RetailCosts: arrRetailCosts,
+                                            Allowances: arrAllowances,
+                                            VendorCosts: arrVendorCosts,
+                                            NetCosts: arrNetCosts,
                                             Update: true
                                         },
                                         headers: {
