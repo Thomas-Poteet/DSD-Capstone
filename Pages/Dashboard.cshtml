@@ -243,6 +243,7 @@
                                         method: 'GET'
                                     });
                                 });
+                                
                                 const productCost = response.arrUPCs.map((upc) => {
                                     return $.ajax({
                                         url: `/vendorsProducts/${upc}/${vendor_no}`,
@@ -251,7 +252,7 @@
                                 });
                                 console.log(productInfo);
                                 console.log(productCost); 
-                                printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response);
+                                printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, productInfo, productCost);
                             },
                             error: function () {
                                 showError('Error fetching invoice details.');
@@ -261,7 +262,7 @@
                 });
 
                 // Function to generate invoice layout and print
-                function printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response) {
+                function printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, productInfo, productCost) {
                     // Create the invoice HTML layout with a header and product list section
                     const invoiceHTML = `
                         <div style="font-family: Arial, sans-serif; margin: 20px;">
@@ -287,13 +288,22 @@
                                     <thead>
                                         <tr style="background-color: #f0f0f0;">
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Product</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">UPC</th>
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Quantity</th>
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Price</th>
                                             <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                       
+                                        ${productInfo.map((product, index) => `
+                                            <tr>
+                                                <td style="border: 1px solid #ccc; padding: 8px;">${product.name}</td>
+                                                <td style="border: 1px solid #ccc; padding: 8px;">${product.UPC}</td>
+                                                <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${product.quantity}</td>
+                                                <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${productCost[index].price}</td>
+                                                <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${(product.quantity * productCost[index].price).toFixed(2)}</td>
+                                            </tr>
+                                        `).join('')}
                                     </tbody>
                                 </table>
                             </div>
