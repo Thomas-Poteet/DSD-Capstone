@@ -28,6 +28,7 @@
         }
     </style>
     <link rel="stylesheet" href="~/css/datatables.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/print.min.css" />
 </head>
 
 <body>
@@ -35,7 +36,7 @@
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <span>
-                <img src="~/images/scenic_logo.PNG" alt="Logo" width="60" height="60" class="d-inline-block align-text-top">
+                <img src="~/images/thumbnail_ScenicLogo-Stacked copy.png" alt="Logo" width="180" height="60" class="d-inline-block align-text-top">
             </span>
             <div>
                 <button id="btnCreateInvoice" class="btn btn-dark me-2">Create Invoice</button>
@@ -98,6 +99,7 @@
 
     @section Scripts {
         <script src="~/js/datatables.min.js"></script>
+        <script src="~/js/print.min.js"></script>
         <script>
             $(document).ready(function() {
                 $('#txtVendor').on('focus', function() {
@@ -209,17 +211,186 @@
                     const tr = $(this).closest('tr').prev(); // Locate the main row of the expanded child row
                     const rowData = table.row(tr).data(); // Get the original row data
 
-                    const invoiceID = decodeHtmlEntities(rowData[1]); // Use the correct data index for invoiceID
-                    const vendor = decodeHtmlEntities(rowData[2]); // Use the correct data index for vendor
+                    const retail_total = tr.data('retail');
+                    const gross = tr.data('gross');
+                    const margin = tr.data('margin');
+                    const count_total = tr.data('count');
+                    const vendor_no = tr.data('vendor_no');
+                    const invoiceID = decodeHtmlEntities(rowData[1]);
+                    const vendor = decodeHtmlEntities(rowData[2]); 
+                    const total = decodeHtmlEntities(rowData[3]); 
+                    const employee = decodeHtmlEntities(rowData[4]); 
+                    const date = decodeHtmlEntities(rowData[5]);
 
                     if ($(this).is('#btnEditInvoice')) {
                         // Navigate to the edit invoice page
                         window.location.href = `/invoice?invoiceNumber=${encodeURIComponent(invoiceID)}&vendor=${encodeURIComponent(vendor)}`;
                     } else if ($(this).is('#btnPrintInvoice')) {
-                        // Handle print action
-                        window.print(); // Or use a more specific print function as needed
+                        // Fetch Products and handle print action
+                        $.ajax({
+                            url: '/Invoice?handler=FillInvoice',
+                            method: 'GET',
+                            data: {
+                                vendorName: vendor,
+                                invoiceID: invoiceID
+                            },
+                            success: function (response) {
+                                console.log(response);
+                                printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response);
+                            },
+                            error: function () {
+                                showError('Error fetching invoice details.');
+                            }
+                        });
                     }
                 });
+
+                async function addExistingProduct(upc, count, vendor_cost, retail_cost, net_cost, allowance) {
+                try {
+                    const data = await $.ajax({
+                        url: `/products/${upc}`,
+                        method: 'GET'
+                    });
+
+                    const strItemName = data.name;
+                    const dept_no = data.department;
+
+                    const departmentResponse = await $.ajax({
+                        url: `/departments/${dept_no}`,
+                        method: 'GET'
+                    });
+                    const dept_name = departmentResponse.dept_name;
+                    const numItemCost = vendor_cost;
+                    const numItemRetail = retail_cost;
+                    const numNetCost = net_cost;
+                    const numVendorTotal = net_cost * count;
+                    const numItemCount = count;
+                    const numRetailTotal = retail_cost * count;
+                    const numItemAllowance = allowance;
+                    const numGross = (((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2);
+
+                    let productHtml = '';
+
+                    productHtml =`
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px;">${strItemName}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">${dept_name}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${numItemCount}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numItemCost}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numItemAllowance}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numNetCost}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numVendorTotal}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numItemRetail}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">$${numRetailTotal}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${numGross}%</td>
+                        </tr>
+                    `;
+
+                    return productHtml;
+                
+                } catch (error) {
+                    Swal.fire({
+                        heightAuto: false,
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error fetching products from invoice'
+                    });
+                }
+            };
+
+                // Function to generate invoice layout and print
+                async function printInvoice(invoiceID, vendor, date, employee, total, retail_total, gross, margin, count_total, response) {
+                    // Create the invoice HTML layout with a header and product list section
+                    const invoiceHTML = `
+                        <div style="font-family: Arial, sans-serif; margin: 20px;">
+                            <!-- Header Section -->
+                            <div style="border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+                                <!-- Left Side: Invoice ID and Vendor -->
+                                <div>
+                                    <h2 style="margin: 0;">Invoice #${invoiceID}</h2>
+                                    <p style="margin: 5px 0;"><strong>Vendor:</strong> ${vendor}</p>
+                                    <p style="margin: 5px 0;"><strong>Total Cost:</strong> ${total}</p>
+                                </div>
+
+                                <span>
+                                    <img src="/images/thumbnail_ScenicLogo-Stacked%20copy.png" alt="Logo" width="180" height="60" class="d-inline-block align-text-top">
+                                </span>
+
+                                <!-- Right Side: Date and Employee -->
+                                <div style="text-align: right;">
+                                    <p style="margin: 5px 0;"><strong>Date:</strong> ${date}</p>
+                                    <p style="margin: 5px 0;"><strong>Employee:</strong> ${employee}</p>
+                                </div>
+                            </div>
+                            <!-- Products Section -->
+                            <div>
+                                <h2>Products</h2>
+                                 <table id="printTable" style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Product</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Department</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Quantity</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Item</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Allowance</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Net</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Total</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Item Retail</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Retail Total</th>
+                                            <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">Gross</th>
+
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Footer Section -->
+                            <div style="margin-top: 20px; font-size: 14px; text-align: right;">
+                                <p><strong>Retail Total:</strong> $${retail_total}</p>
+                                <p><strong>Total Cost:</strong> ${total}</p>
+                                <p><strong>Gross:</strong> ${gross}%</p>
+                                <p><strong>Margin:</strong> $${margin}</p>
+                                <p><strong>Units:</strong> ${count_total}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // Convert the invoiceHTML string into a DOM element
+                    const $invoice = $(invoiceHTML);
+
+                    // Loop through the response data and append rows to the <tbody>
+                    for (let i = 0; i < response.arrUPCs.length; i++) {
+                        const rowHTML = await addExistingProduct(
+                            response.arrUPCs[i], 
+                            response.arrCounts[i], 
+                            response.arrVendorCost[i], 
+                            response.arrRetailCost[i], 
+                            response.arrNetCost[i], 
+                            response.arrAllowances[i]
+                        );
+                        console.log(rowHTML);
+
+                        // Append each row to the table's <tbody>
+                        $invoice.find("#printTable tbody").append(rowHTML);
+                    } 
+                    // Print the invoice with Print.js
+                    printJS({
+                        printable: $invoice.html(),
+                        type: 'raw-html',
+                        style: `
+                            body { font-family: Arial, sans-serif; color: #333; }
+                            h2 { color: #333; }
+                            table { width: 100%; border-collapse: collapse; }
+                            th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+                            th { background-color: #f0f0f0; }
+                        `,
+                        header: '<h1>Invoice</h1>'
+                    });
+                }
 
                 // Fetch vendor_no from name
                 function fetchInvoicesByVendor(vendorId) {
@@ -309,12 +480,12 @@
                             url: `/Employees/${invoice.emp_no}`,
                             method: 'GET',
                             success: function(employee) {
-                                console.log(invoice);
                                 const invoiceRow = `
                                     <tr data-retail="${invoice.retail_total}" 
                                         data-gross="${invoice.gross}" 
                                         data-margin="${(invoice.retail_total - invoice.vendor_total).toFixed(2)}" 
-                                        data-count="${invoice.count_total}">
+                                        data-count="${invoice.count_total}"
+                                        data-vendor_no="${invoice.vendor_no}">
 
                                         <td class="dt-control"><i class="bi bi-chevron-right"></i></td>
                                         <td>${invoice.invoiceID}</td>

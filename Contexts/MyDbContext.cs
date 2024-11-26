@@ -47,6 +47,22 @@ public class MyDbContext : DbContext
             .Property(a => a.discount_cost)
             .HasColumnType("money");
 
+        modelBuilder.Entity<InvoiceProduct>()
+            .Property(i => i.retail_cost)
+            .HasColumnType("money");
+        
+        modelBuilder.Entity<InvoiceProduct>()
+            .Property(i => i.allowances)
+            .HasColumnType("money");
+
+        modelBuilder.Entity<InvoiceProduct>()
+            .Property(i => i.vendor_cost)
+            .HasColumnType("money");
+
+        modelBuilder.Entity<InvoiceProduct>()
+            .Property(i => i.net_cost)
+            .HasColumnType("money");
+
         //sets the Department entity's primary key as composite
         modelBuilder.Entity<Department>()
             .HasKey(d => new { d.dept_no, d.dept_sub });
