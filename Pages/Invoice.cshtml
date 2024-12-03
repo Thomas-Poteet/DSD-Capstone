@@ -291,10 +291,10 @@
                                 $("#spnTitle").text("Update");
                                 $("#txtDate").val(response.date);
                                 $("#spnTotalUnits").text(response.countTotal);
-                                $("#spnTotalCost").text(response.vendorTotal);
-                                $("#txtVendorTotal").val(response.vendorTotal);
-                                $("#spnTotalRetail").text(response.retailTotal);
-                                $("#spnTotalGrossMargin").text(response.grossTotal);
+                                $("#spnTotalCost").text(response.vendorTotal.toFixed(2));
+                                $("#txtVendorTotal").val(response.vendorTotal.toFixed(2));
+                                $("#spnTotalRetail").text(response.retailTotal.toFixed(2));
+                                $("#spnTotalGrossMargin").text(response.grossTotal.toFixed(2));
                                 $("#spnBalance").text((0.00).toFixed(2));
                                 for (let i = 0; i < response.arrUPCs.length; i++) {
                                     addExistingProduct(response.arrUPCs[i], response.arrCounts[i], response.arrVendorCost[i], response.arrRetailCost[i], response.arrNetCost[i], response.arrAllowances[i]);
@@ -388,6 +388,17 @@
                     const numRetailTotal = retail_cost * count;
                     const numItemAllowance = allowance;
 
+                    // Update the global variables
+                    numTotalUnits += numItemCount;
+                    numTotalCost += numNetCost * numItemCount;
+                    numTotalRetail += numItemRetail * numItemCount;
+                    arrUPCs.push(upc);
+                    arrCounts.push(numItemCount);
+                    arrRetailCosts.push(numItemRetail);
+                    arrAllowances.push(numItemAllowance);
+                    arrVendorCosts.push(numItemCost);
+                    arrNetCosts.push(numNetCost);
+
                     $("#divItemsCard").append(`
                                     <div class="card p-2 mb-2">
                                         <div class="d-flex justify-content-between align-items-center cardHeader">
@@ -413,7 +424,7 @@
                                                     <p class="m-0">Department: ${dept_name}</p>
                                                     <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                     <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                    <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                    <p class="m-0">Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -518,7 +529,7 @@
                                 const numItemRetail = data.price;
                                 const numNetCost = numItemCost - numItemAllowance;
 
-                                // Update the total units, cost, retail, and add UPC to array
+                                // Update the global variables
                                 numTotalUnits += numItemCount;
                                 numTotalCost += numNetCost * numItemCount;
                                 numTotalRetail += numItemRetail * numItemCount;
@@ -528,9 +539,6 @@
                                 arrAllowances.push(numItemAllowance);
                                 arrVendorCosts.push(numItemCost);
                                 arrNetCosts.push(numNetCost);
-                                if (arrUPCs.length === 1) {
-                                    $("#txtVendor").prop('disabled', true);
-                                }
 
                                 // Update the total units, cost, and retail in the UI
                                 $("#spnTotalUnits").text(numTotalUnits);
@@ -575,7 +583,7 @@
                                                                 <p class="m-0">Department: ${dept_name}</p>
                                                                 <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                                 <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                                <p class="m-0">Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -650,7 +658,7 @@
                                                             <p class="m-0">Department: ${dept_name}</p>
                                                             <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                             <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                            <p class="m-0">Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1076,8 +1084,15 @@
                                 if (response.groupProducts.includes($(this).find('p').eq(0).text())) {
                                     // Get the item count, retail, and difference in cost
                                     numItemCount = parseInt($(this).find('p').eq(1).text().split(" - ")[1]);
-                                    numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(4).text().split("$")[1]);
+                                    numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
                                     numDifference = numItemCost - parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
+                                    numItemAllowance = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(1).text().split("$")[1]);
+                                    numNetCost = numItemCost - numItemAllowance;
+
+                                    // Update the vendor cost and net cost in the arrays
+                                    const index = arrUPCs.indexOf($(this).find('p').eq(0).text());
+                                    arrVendorCosts[index] = numItemCost;
+                                    arrNetCosts[index] = numNetCost;
 
                                     // Update the total cost
                                     numTotalCost += numDifference * numItemCount;
@@ -1099,8 +1114,9 @@
 
                                     // Update the item cost, total cost, and gross margin in the dropdown
                                     $(this).closest('.card').find('.dropdownContent p').eq(0).text(`Cost: $${numItemCost.toFixed(2)}`);
-                                    $(this).closest('.card').find('.dropdownContent p').eq(1).text(`Total Cost: $${(numItemCost * numItemCount).toFixed(2)}`);
-                                    $(this).closest('.card').find('.dropdownContent p').eq(2).text(`Gross Margin: $${(((numItemRetail - numItemCost) / numItemRetail) * 100).toFixed(2)}%`);
+                                    $(this).closest('.card').find('.dropdownContent p').eq(2).text(`Net Cost: $${numNetCost.toFixed(2)}`);
+                                    $(this).closest('.card').find('.dropdownContent p').eq(3).text(`Total Cost: $${(numNetCost * numItemCount).toFixed(2)}`);
+                                    $(this).closest('.card').find('.dropdownContent p').eq(7).text(`Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%`);
 
                                     Swal.fire({
                                         heightAuto: false,
