@@ -4,12 +4,12 @@ public class MyDbContext : DbContext
 {
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 
-    public DbSet<Employee> Employees { get; set; }
-    public DbSet<Product> Products { get; set; }
+    public required DbSet<Employee> Employees { get; set; }
+    public required DbSet<Product> Products { get; set; }
 
-    public DbSet<Vendor> Vendors { get; set; }
-    public DbSet<VendorProduct> VendorsProducts { get; set; }
-    public DbSet<Allowance> Allowances { get; set; }
+    public required DbSet<Vendor> Vendors { get; set; }
+    public required DbSet<VendorProduct> VendorsProducts { get; set; }
+    public required DbSet<Allowance> Allowances { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         //sets the VendorProduct entity's primary key as composite
@@ -42,6 +42,10 @@ public class MyDbContext : DbContext
         modelBuilder.Entity<Invoice>()
             .Property(i => i.retail_total)
             .HasColumnType("money");
+        
+        modelBuilder.Entity<Allowance>()
+            .Property(a => a.discount_cost)
+            .HasColumnType("money");
 
         modelBuilder.Entity<InvoiceProduct>()
             .Property(i => i.retail_cost)
@@ -65,10 +69,14 @@ public class MyDbContext : DbContext
 
         modelBuilder.Entity<Invoice>()
             .HasKey(i => new { i.InvoiceID, i.vendor_no });
+        
+        modelBuilder.Entity<ProductGroupDetail>()
+            .HasKey(pgd => new { pgd.PGCode, pgd.UPC });
 
         base.OnModelCreating(modelBuilder);
     }
-    public DbSet<Department> Departments { get; set; }
-    public DbSet<Invoice> Invoices { get; set; }
-    public DbSet<InvoiceProduct> InvoiceProducts { get; set; }
+    public required DbSet<Department> Departments { get; set; }
+    public required DbSet<Invoice> Invoices { get; set; }
+    public required DbSet<InvoiceProduct> InvoiceProducts { get; set; }
+    public required DbSet<ProductGroupDetail> ProductGroupDetail { get; set; }
 }

@@ -86,6 +86,115 @@ public class InvoiceModel(MyDbContext context) : PageModel
         });
     }
 
+    public async Task<IActionResult> OnGetGroupProductsAsync(string UPC, string VendorName) {
+        // Get the product group code if it exists
+        var PGCode = await db.ProductGroupDetail
+            .FirstOrDefaultAsync(pgd => pgd.UPC == UPC);
+
+        // Return if the product is not in a group
+        if (PGCode == null)
+        {
+            return new JsonResult(new { success = true, group = false });
+        }
+
+        // Create a list to store the UPCs of the products in the group
+        List<string> groupUPCs;
+
+        // Get the UPCs of the products in the group
+        groupUPCs = await db.ProductGroupDetail
+            .Where(pgd => pgd.PGCode == PGCode.PGCode)
+            .Select(pgd => pgd.UPC)
+            .ToListAsync();
+
+        // Get the vendor number
+        var vendor = await db.Vendors
+            .FirstAsync(v => v.name == VendorName);
+
+        // Keep only the products that the vendor sells
+        groupUPCs = await db.VendorsProducts
+            .Where(vp => groupUPCs.Contains(vp.upc) && vp.vendor_no == vendor.vendor_no)
+            .Select(vp => vp.upc)
+            .ToListAsync();
+
+        if (groupUPCs.Count == 1)
+        {
+            return new JsonResult(new { success = true, group = false });
+        }
+
+        // Get the costs of the products in the group
+        var groupCosts = await db.VendorsProducts
+            .Where(vp => groupUPCs.Contains(vp.upc) && vp.vendor_no == vendor.vendor_no)
+            .Select(vp => new { vp.cost })
+            .ToListAsync();
+
+        // Get the descriptions of the products in the group
+        var groupDescriptions = await db.Products
+            .Where(p => groupUPCs.Contains(p.upc))
+            .Select(p => new { p.description })
+            .ToListAsync();
+
+        // Store the UPCs and costs in a list of objects
+        List<object> groupProducts = [];
+        for (int i = 0; i < groupDescriptions.Count; i++)
+        {
+            groupProducts.Add(new { name = groupDescriptions[i].description, groupCosts[i].cost });
+        }
+        
+
+        return new JsonResult(new { success = true, group = true, groupProducts });
+    }
+
+    public async Task<IActionResult> OnPostEditCostAsync(EditCostRequest request)
+    {
+        // Get vendor number
+        var vendor = await db.Vendors
+            .FirstAsync(v => v.name == request.VendorName);
+        var vendor_no = vendor.vendor_no;
+
+        // Get the product group code if it exists
+        var PGCode = await db.ProductGroupDetail
+            .FirstOrDefaultAsync(pgd => pgd.UPC == request.UPC);
+
+        // Create a list to store the UPCs of the products in the group
+        List<string> groupProducts;
+
+        // Update the cost of the product and return if its not in a group
+        if (PGCode == null || !request.EditGroup)
+        {
+            var vendorsProduct = await db.VendorsProducts
+                .FirstAsync(vp => vp.upc == request.UPC && vp.vendor_no == vendor_no);
+            
+            vendorsProduct.cost = request.Cost;
+
+            // Create a list with only the updated product
+            groupProducts = [request.UPC];
+
+            db.VendorsProducts.Update(vendorsProduct);
+            await db.SaveChangesAsync();
+            return new JsonResult(new { success = true, groupProducts });
+        }
+
+        // Get the UPCs of the products in the group
+        groupProducts = await db.ProductGroupDetail
+            .Where(pgd => pgd.PGCode == PGCode.PGCode)
+            .Select(pgd => pgd.UPC)
+            .ToListAsync();
+
+        // Update the cost of the products in the group
+        foreach (var upc in groupProducts)
+        {
+            var vendorsProduct = await db.VendorsProducts
+                .FirstAsync(vp => vp.upc == upc && vp.vendor_no == vendor_no);
+            
+            vendorsProduct.cost = request.Cost;
+
+            db.VendorsProducts.Update(vendorsProduct);
+        }
+
+        await db.SaveChangesAsync();
+        return new JsonResult(new { success = true, groupProducts });
+    }
+
     public async Task<IActionResult> OnPostAsync(InvoiceRequest request)
     {
         // Get vendor number
@@ -223,6 +332,14 @@ public class InvoiceModel(MyDbContext context) : PageModel
 
         await db.SaveChangesAsync();
         return new JsonResult(new { success = true });
+    }
+
+    public class EditCostRequest
+    {
+        public required string UPC { get; set; }
+        public required decimal Cost { get; set; }
+        public required string VendorName { get; set; }
+        public required bool EditGroup { get; set; }
     }
 
     public class InvoiceRequest

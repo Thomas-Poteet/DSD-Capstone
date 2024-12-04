@@ -291,10 +291,10 @@
                                 $("#spnTitle").text("Update");
                                 $("#txtDate").val(response.date);
                                 $("#spnTotalUnits").text(response.countTotal);
-                                $("#spnTotalCost").text(response.vendorTotal);
-                                $("#txtVendorTotal").val(response.vendorTotal);
-                                $("#spnTotalRetail").text(response.retailTotal);
-                                $("#spnTotalGrossMargin").text(response.grossTotal);
+                                $("#spnTotalCost").text(response.vendorTotal.toFixed(2));
+                                $("#txtVendorTotal").val(response.vendorTotal.toFixed(2));
+                                $("#spnTotalRetail").text(response.retailTotal.toFixed(2));
+                                $("#spnTotalGrossMargin").text(response.grossTotal.toFixed(2));
                                 $("#spnBalance").text((0.00).toFixed(2));
                                 for (let i = 0; i < response.arrUPCs.length; i++) {
                                     addExistingProduct(response.arrUPCs[i], response.arrCounts[i], response.arrVendorCost[i], response.arrRetailCost[i], response.arrNetCost[i], response.arrAllowances[i]);
@@ -388,6 +388,17 @@
                     const numRetailTotal = retail_cost * count;
                     const numItemAllowance = allowance;
 
+                    // Update the global variables
+                    numTotalUnits += numItemCount;
+                    numTotalCost += numNetCost * numItemCount;
+                    numTotalRetail += numItemRetail * numItemCount;
+                    arrUPCs.push(upc);
+                    arrCounts.push(numItemCount);
+                    arrRetailCosts.push(numItemRetail);
+                    arrAllowances.push(numItemAllowance);
+                    arrVendorCosts.push(numItemCost);
+                    arrNetCosts.push(numNetCost);
+
                     $("#divItemsCard").append(`
                                     <div class="card p-2 mb-2">
                                         <div class="d-flex justify-content-between align-items-center cardHeader">
@@ -413,7 +424,7 @@
                                                     <p class="m-0">Department: ${dept_name}</p>
                                                     <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                     <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                    <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                    <p class="m-0">Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -518,7 +529,7 @@
                                 const numItemRetail = data.price;
                                 const numNetCost = numItemCost - numItemAllowance;
 
-                                // Update the total units, cost, retail, and add UPC to array
+                                // Update the global variables
                                 numTotalUnits += numItemCount;
                                 numTotalCost += numNetCost * numItemCount;
                                 numTotalRetail += numItemRetail * numItemCount;
@@ -528,9 +539,6 @@
                                 arrAllowances.push(numItemAllowance);
                                 arrVendorCosts.push(numItemCost);
                                 arrNetCosts.push(numNetCost);
-                                if (arrUPCs.length === 1) {
-                                    $("#txtVendor").prop('disabled', true);
-                                }
 
                                 // Update the total units, cost, and retail in the UI
                                 $("#spnTotalUnits").text(numTotalUnits);
@@ -575,7 +583,7 @@
                                                                 <p class="m-0">Department: ${dept_name}</p>
                                                                 <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                                 <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                                <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                                <p class="m-0">Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -650,7 +658,7 @@
                                                             <p class="m-0">Department: ${dept_name}</p>
                                                             <p class="m-0">Retail: $${numItemRetail.toFixed(2)}</p>
                                                             <p class="m-0">Total Retail: $${(numItemRetail * numItemCount).toFixed(2)}</p>
-                                                            <p class="m-0">Gross Margin: $${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
+                                                            <p class="m-0">Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -739,15 +747,20 @@
             });
 
             $(document).on('click', '.btnEdit', function (event) {
+                // Prevent the dropdown from opening
                 event.stopPropagation();
 
+                // Get the item name and button that was clicked
+                const btnEdit = $(this);
                 strItemName = $(this).closest('.cardHeader').find('p').eq(1).text().split(" - ")[0];
 
+                // SweetAlert to edit the item count
                 Swal.fire({
                     heightAuto: false,
                     title: strItemName,
                     input: 'number',
                     inputLabel: 'Enter Item Count',
+                    inputValue: $(this).closest('.cardHeader').find('p').eq(1).text().split(" - ")[1],
                     inputAttributes: {
                         min: 1,
                         max: 999,
@@ -757,6 +770,141 @@
                     confirmButtonText: 'Submit',
                     denyButtonText: 'Delete',
                     showDenyButton: true,
+                    html: `
+                        <button id="btnEditCost" class="swal2-confirm swal2-styled" style="background-color: #f39c12;">Edit Cost</button>
+                    `,
+                    didRender: function() {
+                        // Add a button to edit the item cost
+                        $('#btnEditCost').appendTo($('.swal2-actions'));
+
+                        // Style the sweetalert
+                        $('.swal2-html-container').css('padding', '0');
+                        $('.swal2-input-label').css('margin', '0');
+                        $('.swal2-input').css('margin-top', '.4rem');
+                        $('.swal2-title').css('margin-bottom', '.2rem');
+
+                        // SweetAlert to edit the item cost
+                        $('#btnEditCost').on('click', function() {
+                            Swal.fire({
+                                heightAuto: false,
+                                title: strItemName,
+                                input: 'number',
+                                inputLabel: 'Enter Item Cost',
+                                inputValue: $(btnEdit).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1],
+                                inputAttributes: {
+                                    min: 0.00,
+                                    max: 999,
+                                    step: 0.01
+                                },
+                                showCancelButton: true,
+                                confirmButtonText: 'Submit',
+                                didOpen: () => {
+                                    const input = Swal.getInput();
+
+                                    input.addEventListener('input', function() {
+                                        let value = input.value;
+                                        
+                                        // adds a leading 0 if the user starts with a decimal
+                                        if (value.startsWith('.')) {
+                                            input.value = "0" + value;
+                                        }
+                                        
+                                        value = input.value;
+
+                                        // limits the input to 2 decimal places
+                                        if (value.includes('.')) {
+                                            const decimalPart = value.split(".")[1];
+                                            if (decimalPart.length > 2) {
+                                                input.value = value.slice(0, value.indexOf('.') + 3);
+                                            }
+                                        }
+                                    })
+                                },
+                                didRender: function () {
+                                    // Add a button to edit the item count
+                                    $('<button id="btnEditCount" class="swal2-cancel swal2-styled" style="background-color: #f39c12;">Edit Count</button>').appendTo($('.swal2-actions'));
+                                    
+                                    // Style the sweetalert
+                                    $('.swal2-html-container').css('padding', '.2rem 4rem 0 4rem');
+                                    $('.swal2-input-label').css('margin', '0');
+                                    $('.swal2-input').css('margin-top', '.4rem');
+                                    $('.swal2-title').css('margin-bottom', '.2rem');
+
+                                    // Switch back to edit count when the button is clicked
+                                    $('#btnEditCount').on('click', function () {
+                                        Swal.close();
+                                        btnEdit.trigger('click');
+                                    });
+                                },
+                                inputValidator: (value) => {
+                                    if (isNaN(value) || value == "") {
+                                        return 'You need to enter a price!';
+                                    }
+                                    if (value < 0) {
+                                        return 'Cost cannot be negative!';
+                                    }
+                                    if (!(/^\d+(\.\d{1,2})?$/.test(value))) {
+                                        return 'Cost must be to 2 decimal places!';
+                                    }
+                                    if (value == 0) {
+                                        return 'Cost must be greater than 0!';
+                                    }
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Get the new item cost
+                                    numItemCost = parseFloat(result.value);
+
+                                    // Check if the item is in a product group and get the products if it is
+                                    $.ajax({
+                                        url: '/Invoice?handler=GroupProducts',
+                                        method: 'GET',
+                                        data: {
+                                            UPC: $(btnEdit).closest('.cardHeader').find('p').eq(0).text(),
+                                            VendorName: $("#txtVendor").val()
+                                        },
+                                        headers: {
+                                            RequestVerificationToken: $('input:hidden[name="__RequestVerificationToken"]').val()
+                                        },
+                                        success: function (response) {
+                                            if (response.success && response.group) {
+                                                // Show a sweet alert to see if the user wants to change the whole group
+                                                Swal.fire({
+                                                    heightAuto: false,
+                                                    title: 'Would you like to update the cost for all products in this group to $' + numItemCost.toFixed(2) + '?',
+                                                    showDenyButton: true,
+                                                    confirmButtonText: 'Yes',
+                                                    denyButtonText: 'No',
+                                                    html: `
+                                                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd;">
+                                                            <table style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
+                                                            <tbody>
+                                                                ${response.groupProducts.map(product => `
+                                                                    <tr>
+                                                                        <td style="border-bottom: 1px solid #ddd; padding: 8px; word-wrap: break-word; width: 75%;">${product.name}</td>
+                                                                        <td style="border-bottom: 1px solid #ddd; padding: 8px; word-wrap: nowrap; width: 25%;">$${product.cost.toFixed(2)}</td>
+                                                                    </tr>
+                                                                `).join('')}
+                                                            </tbody>
+                                                            </table>
+                                                        </div>
+                                                    `
+                                                }).then((result) => {
+                                                    EditGroup = false;
+                                                    if (result.isConfirmed) {
+                                                        EditGroup = true;
+                                                    }
+                                                    editCost($(btnEdit).closest('.cardHeader').find('p').eq(0).text(), numItemCost, EditGroup);
+                                                })
+                                            } else if (response.success) {
+                                                editCost($(btnEdit).closest('.cardHeader').find('p').eq(0).text(), numItemCost);
+                                            }
+                                        }
+                                    })
+                                }
+                            });
+                        });
+                    },
                     inputValidator: (value) => {
                         if (isNaN(value) || value == "") {
                             return 'You need to enter a number!';
@@ -775,12 +923,15 @@
                         }
                     }
                 }).then((result) => {
+                    // If the user confirmed the count change
                     if (result.isConfirmed) {
+                        // Get the item count, previous item count, and difference
                         const strUPC = $(this).closest('.cardHeader').find('p').eq(0).text();
                         const numPrevItemCount = parseInt($(this).closest('.cardHeader').find('p').eq(1).text().split(" - ")[1]);
                         const numItemCount = result.value;
                         const numDifference = numItemCount - numPrevItemCount;
 
+                        // Get the item cost and retail
                         const numItemCost = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(2).text().split("$")[1]);
                         const numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
 
@@ -789,10 +940,11 @@
                         numTotalCost += numItemCost * numDifference;
                         numTotalRetail += numItemRetail * numDifference;
 
+                        // Update the item count in the array
                         const index = arrUPCs.indexOf(strUPC);
                         arrCounts[index] = numItemCount;
 
-                        // Update the total units, cost, retail, and gross margin in the UI
+                        // Update the total units, cost, retail, gross margin, and Balance in the UI
                         $("#spnTotalUnits").text(numTotalUnits);
                         $("#spnTotalCost").text(numTotalCost.toFixed(2));
                         $("#spnTotalRetail").text(numTotalRetail.toFixed(2));
@@ -835,6 +987,7 @@
                                 numTotalCost -= numItemCost * numItemCount;
                                 numTotalRetail -= numItemRetail * numItemCount;
 
+                                // Update the item count in the array
                                 const index = arrUPCs.indexOf(strUPC);
                                 arrUPCs.splice(index, 1);
                                 arrCounts.splice(index, 1);
@@ -843,6 +996,7 @@
                                 arrVendorCosts.splice(index, 1);
                                 arrNetsCosts.splice(index, 1);
 
+                                // Update the total units, cost, retail, and gross margin in the UI
                                 if (arrUPCs.length === 0) {
                                     $("#spnTotalGrossMargin").text("0.00");
                                     $("#spnTotalCost").text("0.00");
@@ -899,37 +1053,89 @@
                 $(this).find('.chevron').toggleClass('fa-chevron-up fa-chevron-down');
             });
 
-            // Will probably need this wherever we allow the user to search for invoices by number
-        @* // array of all invoice numbers as strings so we can go through them and filter when the user types
-            let arrInvoiceNumbers = @Json.Serialize(Model.InvoiceNumbers);
-
-            // filtering invoice numbers by startsWith instead of contains
-            $("#txtInvoiceNumber").on("input", function(){
-            var strInputVal = $('#txtInvoiceNumber').val().toLowerCase(); // Get the input value in lowercase
-            var strOptions = '';
-
-            if (strInputVal !== '') {
-            // Iterate over all invoices and filter based on the input value
-            arrInvoiceNumbers.forEach(function(strInvoiceNumber) {
-            if ((strInvoiceNumber.toLowerCase()).startsWith(strInputVal)) {
-            strOptions += '<option value="' + strInvoiceNumber + '" />';
+            // Function to get today's date in YYYY-MM-DD format
+            function getTodayDate() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based, so add 1
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             }
-            });
-            $('#dlInvoices').html(strOptions);
-            } else {
-            // If the input is empty, clear the invoice list
-            $("#dlInvoices").empty();
-            }
-            }); *@
 
-                // Function to get today's date in YYYY-MM-DD format
-                function getTodayDate() {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based, so add 1
-                    const day = String(today.getDate()).padStart(2, '0');
-                    return `${year}-${month}-${day}`;
-                }
+            function editCost(strUPC, numItemCost, EditGroup = false) {
+                // Update cost in VendorsProducts for all products in the product group unless EditGroup is false
+                $.ajax({
+                    url: '/Invoice?handler=EditCost',
+                    method: 'POST',
+                    data: {
+                        UPC: strUPC,
+                        Cost: numItemCost,
+                        VendorName: $("#txtVendor").val(),
+                        EditGroup: EditGroup
+                    },
+                    headers: {
+                        RequestVerificationToken: $('input:hidden[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // Loop through all items currently in the invoice
+                            $('.cardHeader').each(function () {
+                                // check if the UPC is in the product group
+                                if (response.groupProducts.includes($(this).find('p').eq(0).text())) {
+                                    // Get the item count, retail, and difference in cost
+                                    numItemCount = parseInt($(this).find('p').eq(1).text().split(" - ")[1]);
+                                    numItemRetail = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(5).text().split("$")[1]);
+                                    numDifference = numItemCost - parseFloat($(this).closest('.card').find('.dropdownContent p').eq(0).text().split("$")[1]);
+                                    numItemAllowance = parseFloat($(this).closest('.card').find('.dropdownContent p').eq(1).text().split("$")[1]);
+                                    numNetCost = numItemCost - numItemAllowance;
+
+                                    // Update the vendor cost and net cost in the arrays
+                                    const index = arrUPCs.indexOf($(this).find('p').eq(0).text());
+                                    arrVendorCosts[index] = numItemCost;
+                                    arrNetCosts[index] = numNetCost;
+
+                                    // Update the total cost
+                                    numTotalCost += numDifference * numItemCount;
+
+                                    // Update the total cost, gross margin, and balance in the UI
+                                    $("#spnTotalCost").text(numTotalCost.toFixed(2));
+                                    $("#spnTotalGrossMargin").text((((numTotalRetail - numTotalCost) / numTotalRetail) * 100).toFixed(2));
+                                    if ($("#txtVendorTotal").val() === '') {
+                                        if (numTotalCost === 0) {
+                                            $("#spnBalance").text((0.00).toFixed(2));
+                                        }
+                                        else {
+                                            $("#spnBalance").text((0.00 - numTotalCost).toFixed(2));
+                                        }
+                                    }
+                                    else {
+                                        $("#spnBalance").text(($("#txtVendorTotal").val() - numTotalCost).toFixed(2));
+                                    }
+
+                                    // Update the item cost, total cost, and gross margin in the dropdown
+                                    $(this).closest('.card').find('.dropdownContent p').eq(0).text(`Cost: $${numItemCost.toFixed(2)}`);
+                                    $(this).closest('.card').find('.dropdownContent p').eq(2).text(`Net Cost: $${numNetCost.toFixed(2)}`);
+                                    $(this).closest('.card').find('.dropdownContent p').eq(3).text(`Total Cost: $${(numNetCost * numItemCount).toFixed(2)}`);
+                                    $(this).closest('.card').find('.dropdownContent p').eq(7).text(`Gross Margin: ${(((numItemRetail - numNetCost) / numItemRetail) * 100).toFixed(2)}%`);
+
+                                    Swal.fire({
+                                        heightAuto: false,
+                                        icon: 'success',
+                                        title: 'Cost Updated'
+                                    });
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                heightAuto: false,
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error updating cost'
+                            });
+                        }
+                    },
+                });
+            }
 
             function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross, numTotalCount) {
                 $.ajax({
