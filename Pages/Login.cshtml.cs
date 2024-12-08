@@ -43,6 +43,19 @@ public class LoginModel(MyDbContext context) : PageModel
             return new JsonResult(new { success = false, message = "Invalid admin password" });
         }
 
+        // Retrieve the SessionTimeout value from the database
+        var sessionTimeoutSetting = await db.SiteSettings
+            .FirstOrDefaultAsync(s => s.SettingKey == "SessionTimeout");
+        if (sessionTimeoutSetting == null)
+        {
+            return new JsonResult(new { success = false, message = "Session timeout setting not found" });
+        }
+
+        // Parse the SessionTimeout value to an integer
+        if (!double.TryParse(sessionTimeoutSetting.SettingValue, out double sessionTimeout))
+        {
+            return new JsonResult(new { success = false, message = "Invalid session timeout value" });
+        }
 
         // Cookie creation
         var claims = new List<Claim>() {
@@ -54,7 +67,7 @@ public class LoginModel(MyDbContext context) : PageModel
         var authProperties = new AuthenticationProperties
         {
             IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10)
+            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(sessionTimeout)
         };
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
