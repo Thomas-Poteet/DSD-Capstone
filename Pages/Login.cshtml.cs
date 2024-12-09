@@ -11,6 +11,7 @@ public class LoginModel(MyDbContext context) : PageModel
 {
     private readonly MyDbContext db = context;
     public List<string> Usernames { get; set; } = [];
+    public string? LoginBackground { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -18,6 +19,18 @@ public class LoginModel(MyDbContext context) : PageModel
         if (User?.Identity != null && User.Identity.IsAuthenticated)
         {
             return RedirectToPage("/Dashboard");
+        }
+
+        // Retrieve the Login Background setting from the database
+        var LoginBackgroundSetting = await db.SiteSettings
+            .FirstOrDefaultAsync(s => s.SettingKey == "LoginBackground");
+        if (LoginBackgroundSetting == null)
+        {
+            return new JsonResult(new { success = false, message = "Login Background setting not found" });
+        }
+        else
+        {
+            LoginBackground = LoginBackgroundSetting.SettingValue;
         }
 
         // Query the database to fill the Usernames list

@@ -18,8 +18,22 @@ public class DashboardModel(MyDbContext context) : PageModel
     private readonly MyDbContext db = context;
 
     public List<string> Vendors { get; set; } = new List<string>();
-    public async Task OnGetAsync()
+    public string? Logo { get; set; }
+
+    public async Task<IActionResult> OnGetAsync()
     {
+        // Retrieve the Logo from the database
+        var LogoSetting = await db.SiteSettings
+            .FirstOrDefaultAsync(s => s.SettingKey == "Logo");
+        if (LogoSetting == null)
+        {
+            return new JsonResult(new { success = false, message = "Logo setting not found" });
+        }
+        else
+        {
+            Logo = LogoSetting.SettingValue;
+        }
+
         // Query the database to fill the Vendors list
         Vendors = await db.Vendors
             .Select(v => v.name)
@@ -31,9 +45,11 @@ public class DashboardModel(MyDbContext context) : PageModel
             .FirstOrDefaultAsync(e => e.UserName == username);
         if (employee == null)
         {
-            return;
+            return new JsonResult(new { success = false, message = "Employee not found" });
         }  
         var emp_name = employee.FirstName + " " + employee.LastName;
+
+        return Page();
     }
     
     
