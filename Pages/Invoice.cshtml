@@ -450,6 +450,7 @@
                     });
 
                     const vendor_no = vendorResponse.vendor_no;
+                    upc = checkUPC(upc);
 
                     const vendorsProductResponse = await $.ajax({
                         url: `/vendorsProducts/${upc}/${vendor_no}`,
@@ -1136,6 +1137,40 @@
                     },
                 });
             }
+
+            //this function checks the upc code entered to see if its a short upc code and pads it accordingly
+            function checkUPC(upc)
+            {
+                console.log(upc)
+                if ((upc.length == 7 && upc.Substring(0, 1) == "0") || upc.length==6)
+                {
+                    upc = upc.Substring(1, 6);
+                    const lastDigit = int.Parse(upc.Substring(5,1));
+
+                    if (lastDigit < 3)
+                    {
+                        result1 = "000" + upc.Substring(0, 2) + upc.Substring(5, 1) + "0000" + upc.Substring(2, 3);
+                        return result1;
+                    }
+                    else if (lastDigit == 3)
+                    {
+                        result2 = "000" + upc.Substring(0, 3) + "00000" + upc.Substring(3, 2);
+                        return result2;
+                    }
+                    else if (lastDigit == 4)
+                    {
+                        result3 = "000" + upc.Substring(0, 4) + "00000" + upc.Substring(4, 1);
+                        return result3;
+                    }
+                    else if (lastDigit > 4)
+                    {
+                        result4 = "000" + upc.Substring(0, 5) + "0000" + upc.Substring(5, 1);
+                        return result4;
+                    }
+                }
+                return upc;
+            }
+
 
             function saveInvoice(strInvoiceNumber, strVendor, strDate, numVendorTotal, numRetailTotal, numGross, numTotalCount) {
                 $.ajax({
