@@ -33,7 +33,7 @@ public class RefreshCookiesModel : PageModel
                 return new JsonResult(new { success = false, message = "Invalid session timeout value" });
             }
 
-            Console.WriteLine($"Session Timeout 2: {sessionTimeout}");
+            Console.WriteLine($"Session Timeout : {sessionTimeout}");
 
             var ClaimsPrincipal = HttpContext.User;
 
