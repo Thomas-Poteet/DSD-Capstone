@@ -6,7 +6,7 @@ public class MyDbContext : DbContext
 
     public required DbSet<Employee> Employees { get; set; }
     public required DbSet<Product> Products { get; set; }
-
+    public required DbSet<SiteSettings> SiteSettings { get; set; }
     public required DbSet<Vendor> Vendors { get; set; }
     public required DbSet<VendorProduct> VendorsProducts { get; set; }
     public required DbSet<Allowance> Allowances { get; set; }
@@ -79,4 +79,5 @@ public class MyDbContext : DbContext
     public required DbSet<Invoice> Invoices { get; set; }
     public required DbSet<InvoiceProduct> InvoiceProducts { get; set; }
     public required DbSet<ProductGroupDetail> ProductGroupDetail { get; set; }
+
 }
