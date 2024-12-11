@@ -1,0 +1,191 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('@Model.LoginBackground') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px; /* Limit the card width */
+            margin: 0 auto; /* Center the card */
+        }
+
+        .card-header h3 {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .form-label {
+            color: #ddd;
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background-color: #73a8ee;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #5c90cc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid vh-100 d-flex flex-column justify-content-center">
+        <div class="card text-black mt-2">
+            <div class="card-header text-center">
+                <h3>DSD System</h3>
+            </div>
+            <div class="card-body">
+                <form>
+                    <label for="txtUsername" class="form-label">Username</label>
+                    <input type="text" id="txtUsername" class="form-control" placeholder="Username"
+                        autocomplete="username" list="dlUsernames" required>
+                    <datalist id="dlUsernames">
+                        @foreach (var username in Model.Usernames)
+                        {
+                            <option value="@username"></option>
+                        }
+                    </datalist>
+
+                    <br>
+
+                    <label for="txtPassword" class="form-label">Admin Password</label>
+                    <input id="txtPassword" type="password" class="form-control" placeholder="Password"
+                        autocomplete="current-password" required>
+
+                    <button id="btnLogin" type="button" class="btn btn-secondary col-12 mt-3">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                // Function to check for query parameters
+                function getQueryParam(name) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    return urlParams.get(name);
+                }
+
+                // Function to remove query parameters from the URL
+                function removeQueryParam(param) {
+                    const url = new URL(window.location);
+                    url.searchParams.delete(param);
+                    window.history.replaceState({}, document.title, url.pathname);
+                }
+
+                // Check if sessionExpired query parameter is present
+                const sessionExpired = getQueryParam('sessionExpired');
+                if (sessionExpired === 'true') {
+                    swal.fire({
+                        heightAuto: false,
+                        icon: 'info',
+                        title: 'Session expired. Please login again.'
+                    });
+                    removeQueryParam('sessionExpired');
+                }
+
+                // Login button click event
+                $("#btnLogin").click(function () {
+                    // Get the username and password
+                    const strUsername = $("#txtUsername").val();
+                    const strPassword = $("#txtPassword").val();
+
+                    // Check if the username and password are empty
+                    if (strUsername == "" || strPassword == "") {
+                        Swal.fire({
+                            heightAuto: false,
+                            icon: 'error',
+                            title: 'Please enter a username and password',
+                            showConfirmButton: false,
+                            timer: 1000
+                        });
+                    }
+                    // making sure password is only numbers
+                    else if (isNaN(strPassword)) {
+                        Swal.fire({
+                            heightAuto: false,
+                            icon: 'error',
+                            title: 'Invalid admin password',
+                            showConfirmButton: false,
+                            timer: 1000
+                        });
+                    }
+                    else {
+                        $.ajax({
+                            url: '/Login',
+                            method: 'POST',
+                            data: { Username: strUsername, Password: strPassword },
+                            headers: {
+                                RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    window.location.href = "/Dashboard";
+                                } else {
+                                    Swal.fire({
+                                        heightAuto: false,
+                                        icon: 'error',
+                                        title: response.message,
+                                        showConfirmButton: false,
+                                        timer: 1000
+                                    });
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    heightAuto: false,
+                                    icon: 'error',
+                                    title: 'Error creating session',
+                                    showConfirmButton: false,
+                                    timer: 1000
+                                });
+                            }
+                        })
+                    }
+                });
+            });
+
+
+
+        </script>
+    }
+</body>
+
+</html>
