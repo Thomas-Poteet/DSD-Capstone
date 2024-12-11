@@ -28,29 +28,14 @@
     Swagger is integrated into the project for API documentation and testing. The Swagger UI will be available in the development environment.
     You can access Swagger UI at /swagger when running the app in development mode.
 
-
-4. Endpoints
-
-    GET /Employees
-        Retrieves a list of all employees from the database.
-
-    GET /products/{upc}
-        Fetches a product based on its UPC (Universal Product Code). Returns a 404 Not Found response if the product doesn't exist.
-
-    GET /VendorNames
-        Retrieves a list of vendor names.
-
-    GET /Products
-        Fetches all the products available in the database.
-
-5. Additional Configurations
+4. Additional Configurations
 
     Static Files: This allows serving static files such as HTML, CSS, or JavaScript from the wwwroot directory.
     Routing & Authorization: The app uses Razor Pages for views and basic routing. Authentication is handled separately if needed.
 
     Running the Application
 
-6. To run the application:
+5. To run the application:
 
     Ensure you have SQL Server installed and configured.
     Update the appsettings.json file with the correct connection string.
